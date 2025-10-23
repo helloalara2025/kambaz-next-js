@@ -1,19 +1,55 @@
-'use client'
+'use client';
 
-// people page
-// simple roster layout with consistent course design
+/*
+  people table
+  data-driven roster view from db
+*/
 
-import Link from 'next/link'
-import { useParams } from 'next/navigation'
-import { Breadcrumb, Card, Table } from 'react-bootstrap'
-import { FaUserCircle } from 'react-icons/fa'
+'use client';
 
-export default function PeoplePage() {
-  const { cid } = useParams<{ cid: string }>()
+import { useParams } from 'next/navigation';
+import * as db from '../../../../Database';
+import { Table, Breadcrumb, Card } from 'react-bootstrap';
+import Link from 'next/link';
+
+// types
+type Enrollment = { course: string; user: string; type: string };
+export type Person = {
+  _id: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  dob?: string;
+  role: string; // FACULTY | STUDENT | TA | ADMIN
+  loginId?: string;
+  section?: string;
+  lastActivity?: string;
+  totalActivity?: string;
+};
+
+export default function PeopleTable() {
+  const { cid } = useParams<{ cid: string }>();
+
+  const users = (db.users as Person[]) ?? [];
+  const enrollments = (db as { enrollments?: Enrollment[] }).enrollments ?? [];
+
+  // if enrollments exist for this course, show those.
+  // else, show all users as a safe fallback.
+  const rows: Person[] = enrollments.length
+    ? enrollments
+        .filter((e) => e.course === cid)
+        .map((e) => users.find((u) => u._id === e.user))
+        .filter((u): u is Person => Boolean(u))
+    : users;
+
+  // sort by lastName then firstName
+  rows.sort((a, b) =>
+    `${a.lastName}${a.firstName}`.localeCompare(`${b.lastName}${b.firstName}`)
+  );
 
   return (
     <div id="wd-people" className="p-3 container-xxl" style={{ maxWidth: '1100px' }}>
-      {/* title + breadcrumbs */}
       <h4 className="fw-semibold mb-1">People</h4>
       <Breadcrumb className="mb-3 small">
         <Breadcrumb.Item linkAs={Link} href="/Dashboard">Dashboard</Breadcrumb.Item>
@@ -22,56 +58,36 @@ export default function PeoplePage() {
         <Breadcrumb.Item active>People</Breadcrumb.Item>
       </Breadcrumb>
 
-      {/* table inside soft card */}
       <Card className="shadow-sm border-0">
         <div className="table-responsive">
           <Table hover className="mb-0 align-middle">
             <thead className="table-light">
               <tr>
                 <th>Name</th>
+                <th>Role</th>
+                <th>Email</th>
                 <th>Login ID</th>
                 <th>Section</th>
-                <th>Role</th>
                 <th>Last Activity</th>
                 <th>Total Activity</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td className="text-nowrap"><FaUserCircle className="me-2 fs-4 text-secondary" />Tony Stark</td>
-                <td>001234561S</td>
-                <td>S101</td>
-                <td>Student</td>
-                <td>2020-10-01</td>
-                <td>10:21:32</td>
-              </tr>
-              <tr>
-                <td className="text-nowrap"><FaUserCircle className="me-2 fs-4 text-secondary" />Bruce Wayne</td>
-                <td>001234562B</td>
-                <td>S101</td>
-                <td>TA</td>
-                <td>2020-10-04</td>
-                <td>05:12:10</td>
-              </tr>
-              <tr>
-                <td className="text-nowrap"><FaUserCircle className="me-2 fs-4 text-secondary" />Natasha Romanoff</td>
-                <td>001234563N</td>
-                <td>S102</td>
-                <td>Faculty</td>
-                <td>2020-10-05</td>
-                <td>20:05:11</td>
-              </tr>
+              {rows.map((u) => (
+                <tr key={u._id}>
+                  <td className="text-nowrap">{u.firstName} {u.lastName}</td>
+                  <td className="text-nowrap">{u.role}</td>
+                  <td className="text-nowrap">{u.email}</td>
+                  <td className="text-nowrap">{u.loginId ?? '—'}</td>
+                  <td className="text-nowrap">{u.section ?? '—'}</td>
+                  <td className="text-nowrap">{u.lastActivity ?? '—'}</td>
+                  <td className="text-nowrap">{u.totalActivity ?? '—'}</td>
+                </tr>
+              ))}
             </tbody>
           </Table>
         </div>
       </Card>
-
-      <style jsx global>{`
-        #wd-people .card { border-radius: 0.75rem; }
-        #wd-people th, #wd-people td { white-space: nowrap; }
-        #wd-people thead th { font-weight: 600; }
-        #wd-people .breadcrumb { margin-top: 2px; }
-      `}</style>
     </div>
-  )
+  );
 }

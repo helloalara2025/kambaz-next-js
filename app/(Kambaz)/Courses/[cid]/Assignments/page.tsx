@@ -1,53 +1,38 @@
-/**
- * AssignmentEditorPage
- * Editor for a single assignment. Includes default values, proper input types,
- * dropdowns for group/grade/display/submission, online entry checkboxes,
- * and date fields (Due, Available from, Until) with defaults.
- */
 'use client';
+
+/*
+  assignments list
+  dynamic from db.assignments filtered by course id
+*/
+
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Button, Form, InputGroup, ListGroup } from 'react-bootstrap';
-import { FaPlus, FaSearch, FaCheckCircle } from 'react-icons/fa';
+import { Breadcrumb, Button, InputGroup, Form, ListGroup, Card } from 'react-bootstrap';
+import { FaSearch, FaPlus, FaCheckCircle } from 'react-icons/fa';
 import { IoEllipsisVertical } from 'react-icons/io5';
+import * as db from '../../../Database';
 
-export default function AssignmentsList({ params }: { params: { cid: string } }) {
-  const { cid } = params;
+type Assignment = { _id: string; title: string; course: string };
 
-  const Section = ({ title, percent, items }:{ title:string; percent?:string; items:{ aid:string; name:string; sub:string }[] }) => (
-    <div className="mb-4 border rounded">
-      <div className="d-flex align-items-center justify-content-between px-3 py-2 border-bottom bg-light">
-        <h6 className="m-0 text-uppercase small fw-semibold">{title}</h6>
-        {percent && <span className="badge text-bg-secondary">{percent}</span>}
-      </div>
-      <ListGroup variant="flush">
-        {items.map(i => (
-          <ListGroup.Item key={i.aid} className="py-3" style={{ borderLeft: '3px solid green' }}>
-            <div className="d-flex justify-content-between align-items-start">
-              <div className="pe-3">
-                <Link href={`/Courses/${cid}/Assignments/${i.aid}`} className="text-decoration-none">
-                  <div className="fw-semibold">{i.name}</div>
-                </Link>
-                <div className="text-secondary small">{i.sub}</div>
-              </div>
-              <div className="text-nowrap">
-                <FaCheckCircle className="text-success me-3" />
-                <IoEllipsisVertical className="fs-4" />
-              </div>
-            </div>
-          </ListGroup.Item>
-        ))}
-      </ListGroup>
-    </div>
-  );
+export default function AssignmentsPage() {
+  const { cid } = useParams<{ cid: string }>();
+  const assignments = (db.assignments as Assignment[]).filter((a) => a.course === cid);
 
   return (
-    <div id="wd-assignments" className="p-1">
-      <div className="text-muted small mb-2">CS5610 SU1 24 MON/FRI › <strong>Assignments</strong></div>
-      <div className="d-flex align-items-center justify-content-between">
+    <div id="wd-assignments" className="p-3 container-xxl" style={{ maxWidth: '1100px' }}>
+      <h4 className="fw-semibold mb-1">Assignments</h4>
+      <Breadcrumb className="mb-3 small text-muted">
+        <Breadcrumb.Item linkAs={Link} href="/Dashboard">Dashboard</Breadcrumb.Item>
+        <Breadcrumb.Item linkAs={Link} href="/Courses">Courses</Breadcrumb.Item>
+        <Breadcrumb.Item linkAs={Link} href={`/Courses/${cid}/Home`}>Course Homepage</Breadcrumb.Item>
+        <Breadcrumb.Item active>Assignments</Breadcrumb.Item>
+      </Breadcrumb>
+
+      <div className="d-flex align-items-center justify-content-between mb-3">
         <div className="flex-grow-1 me-3" style={{ maxWidth: 420 }}>
           <InputGroup>
             <InputGroup.Text><FaSearch /></InputGroup.Text>
-            <Form.Control placeholder="Search..." aria-label="Search for Assignment" />
+            <Form.Control placeholder="Search assignments..." aria-label="Search assignments" />
           </InputGroup>
         </div>
         <div className="text-nowrap">
@@ -55,16 +40,31 @@ export default function AssignmentsList({ params }: { params: { cid: string } })
           <Button variant="danger"><FaPlus className="me-2" /> Assignment</Button>
         </div>
       </div>
-      <hr className="my-4" />
-      <Section title="Assignments" percent="40% of Total" items={[
-        { aid:'A1', name:'A1 — HTML',            sub:'Multiple Modules • Due May 15 • 100 pts' },
-        { aid:'A2', name:'A2 — CSS + Bootstrap', sub:'Multiple Modules • Due May 22 • 100 pts' },
-        { aid:'A3', name:'A3 — JavaScript + React', sub:'Multiple Modules • Due May 29 • 100 pts' },
-      ]}/>
-      <Section title="Quizzes" percent="20% of Total" items={[
-        { aid:'Q1', name:'Q1 — HTML/CSS', sub:'Available May 16 • Due May 16 • 25 pts' },
-        { aid:'Q2', name:'Q2 — JS/React', sub:'Available May 23 • Due May 23 • 25 pts' },
-      ]}/>
+
+      <Card className="shadow-sm border-0">
+        <div className="d-flex align-items-center justify-content-between px-3 py-2 border-bottom bg-light">
+          <h6 className="m-0 text-uppercase small fw-semibold">Assignments</h6>
+          <span className="badge text-bg-secondary">{assignments.length}</span>
+        </div>
+        <ListGroup variant="flush">
+          {assignments.map((a) => (
+            <ListGroup.Item key={a._id} className="py-3" style={{ borderLeft: '3px solid var(--bs-success)' }}>
+              <div className="d-flex justify-content-between align-items-start">
+                <div className="pe-3">
+                  <Link href={`/Courses/${cid}/Assignments/${a._id}`} className="text-decoration-none">
+                    <div className="fw-semibold">{a.title}</div>
+                  </Link>
+                  <div className="text-secondary small">Course {cid}</div>
+                </div>
+                <div className="text-nowrap">
+                  <FaCheckCircle className="text-success me-3" />
+                  <IoEllipsisVertical className="fs-4 text-secondary" />
+                </div>
+              </div>
+            </ListGroup.Item>
+          ))}
+        </ListGroup>
+      </Card>
     </div>
   );
 }

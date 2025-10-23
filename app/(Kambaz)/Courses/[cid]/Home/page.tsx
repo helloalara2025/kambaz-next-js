@@ -1,152 +1,192 @@
 /**
  * course home
- * structure for course overview
- * shows title + crumbs + lecture dropdowns
- * minimal accordion layout for reading flow
+ * overview with sidebar + breadcrumb + accordion
+ * client component for expand/collapse controls
  */
-'use client'
+'use client';
 
-// base imports
-import Link from 'next/link'
-import { useParams } from 'next/navigation'
-import { Row, Col, Accordion, ListGroup, Button } from 'react-bootstrap'
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { Row, Col, Accordion, ListGroup, Button } from 'react-bootstrap';
+import * as db from '../../../Database';
 
-// course id map
+import CourseStatus from './Status';
+
+/** Local shapes to avoid `any` */
+type ModuleLite = { _id: string; name: string; course: string };
+type AssignmentLite = { _id: string; title: string; course: string };
+
+/** Map course ids to display titles */
 const COURSE_TITLES: Record<string, string> = {
-  '1234': 'CS1234 React JS',
-  '225988': 'CS5610.18616.202610',
-  'CS9101': 'CS9101 Node',
-}
+  RS101: 'Rocket Propulsion',
+  RS102: 'Aerodynamics',
+  RS103: 'Spacecraft Design',
+};
 
 export default function CourseHome() {
-  // get current course id
-  const params = useParams()
-  const courseId = String((params as Record<string, string | string[]>).cid)
-  const courseTitle = COURSE_TITLES[courseId] || courseId
+  const params = useParams();
+  const courseId = String((params as Record<string, string | string[]>).cid);
+  const courseTitle = COURSE_TITLES[courseId] || courseId;
+  const crumbs = [
+    { href: '/Dashboard', label: 'Dashboard' },
+    { href: '/Courses', label: 'Courses' },
+    { href: `/Courses/${courseId}`, label: 'Course Homepage' },
+    { href: '#', label: 'Home', current: true },
+  ];
 
-  // collapse all sections
+  const courseModules: ModuleLite[] = (db.modules as ModuleLite[] ?? [])
+    .filter((m) => m.course === courseId)
+    .slice(0, 4);
+
+  const courseAssignments: AssignmentLite[] = (db.assignments as AssignmentLite[] ?? [])
+    .filter((a) => a.course === courseId)
+    .slice(0, 5);
+
+  /** Collapse all open accordion sections */
   const collapseAll = () => {
-    const container = document.getElementById('wd-home-modules-preview')
-    if (!container) return
+    const container = document.getElementById('wd-home-modules-preview');
+    if (!container) return;
     container
       .querySelectorAll('.accordion-item .accordion-button:not(.collapsed)')
-      .forEach(btn => (btn as HTMLButtonElement).click())
-  }
+      .forEach(btn => (btn as HTMLButtonElement).click());
+  };
 
-  // expand all sections
+  /** Expand all collapsed accordion sections */
   const expandAll = () => {
-    const container = document.getElementById('wd-home-modules-preview')
-    if (!container) return
+    const container = document.getElementById('wd-home-modules-preview');
+    if (!container) return;
     container
       .querySelectorAll('.accordion-item .accordion-button.collapsed')
-      .forEach(btn => (btn as HTMLButtonElement).click())
-  }
+      .forEach(btn => (btn as HTMLButtonElement).click());
+  };
 
   return (
-    <div id="wd-course-home" className="container-fluid px-3 pt-3">
-      {/* course title */}
-      <h4 className="fw-semibold mb-2">{courseTitle}</h4>
-
-      {/* crumbs for quick nav */}
-      <Row className="mb-3">
-        <Col>
+    <div id="wd-course-home" className="container-xxl px-3 pt-3">
+      <div className="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+        <div>
+          <h5 className="fw-semibold mb-0">{courseTitle}</h5>
+          <div className="text-muted small">{courseId}</div>
+        </div>
+        <div className="d-flex align-items-center gap-2">
           <nav aria-label="breadcrumb">
             <ol className="breadcrumb small mb-0">
-              <li className="breadcrumb-item">
-                <Link href="/Dashboard" className="text-muted">Dashboard</Link>
-              </li>
-              <li className="breadcrumb-item">
-                <Link href="/Courses" className="text-muted">Courses</Link>
-              </li>
-              <li className="breadcrumb-item">
-                <Link href={`/Courses/${courseId}`} className="text-muted">Course Homepage</Link>
-              </li>
-              <li className="breadcrumb-item active" aria-current="page">Home</li>
+              {crumbs.map((c, i) => (
+                <li
+                  key={i}
+                  className={`breadcrumb-item ${c.current ? 'active' : ''}`}
+                  aria-current={c.current ? 'page' : undefined}
+                >
+                  {c.current ? (
+                    c.label
+                  ) : (
+                    <Link href={c.href} className="text-muted">
+                      {c.label}
+                    </Link>
+                  )}
+                </li>
+              ))}
             </ol>
           </nav>
-        </Col>
-      </Row>
+          <Button size="sm" variant="outline-secondary" onClick={expandAll}>Expand All</Button>
+          <Button size="sm" variant="outline-secondary" onClick={collapseAll}>Collapse All</Button>
+        </div>
+      </div>
 
-      {/* expand/collapse controls */}
-      <Row className="align-items-center mb-3">
-        <Col className="d-flex justify-content-end gap-2">
-          <Button size="sm" variant="outline-secondary" onClick={expandAll}>
-            Expand All
-          </Button>
-          <Button size="sm" variant="outline-secondary" onClick={collapseAll}>
-            Collapse All
-          </Button>
-        </Col>
-      </Row>
+      <Row className="g-3">
 
-      {/* lectures */}
-      <Row className="g-3 mx-0">
-        <Col lg={12}>
-          <Accordion alwaysOpen id="wd-home-modules-preview">
-            {/* lecture 1 */}
+        {/* Main content */}
+        <Col lg={9} md={9} sm={12}>
+          {/* Modules overview */}
+          <div className="card mb-3">
+            <div className="card-header d-flex justify-content-between align-items-center py-2">
+              <span className="fw-semibold">Modules</span>
+              <Link href={`/Courses/${courseId}/Modules`} className="small">View all</Link>
+            </div>
+            <ul className="list-group list-group-flush small">
+              {courseModules.map((m: ModuleLite) => (
+                <li key={m._id} className="list-group-item">{m.name}</li>
+              ))}
+              {courseModules.length === 0 && (
+                <li className="list-group-item text-muted">No modules yet</li>
+              )}
+            </ul>
+          </div>
+
+          {/* Assignments overview */}
+          <div className="card mb-3">
+            <div className="card-header d-flex justify-content-between align-items-center py-2">
+              <span className="fw-semibold">Assignments</span>
+              <Link href={`/Courses/${courseId}/Assignments`} className="small">View all</Link>
+            </div>
+            <ul className="list-group list-group-flush small">
+              {courseAssignments.map((a: AssignmentLite) => (
+                <li key={a._id} className="list-group-item">{a.title}</li>
+              ))}
+              {courseAssignments.length === 0 && (
+                <li className="list-group-item text-muted">No assignments yet</li>
+              )}
+            </ul>
+          </div>
+
+          {/* Modules preview accordion */}
+          <Accordion alwaysOpen id="wd-home-modules-preview" className="mb-4">
             <Accordion.Item eventKey="0">
-              <Accordion.Header>
-                Lecture 1 - building interfaces + assignment 1
-              </Accordion.Header>
-              <Accordion.Body className="p-3 bg-white text-dark" style={{ color: '#000', backgroundColor: '#fff' }}>
-                <ListGroup variant="flush" className="border rounded bg-white">
-                  <ListGroup.Item className="bg-white text-dark" style={{ color: '#000', backgroundColor: '#fff' }}>overview</ListGroup.Item>
-                  <ListGroup.Item className="bg-white text-dark" style={{ color: '#000', backgroundColor: '#fff' }}>setting up html + react</ListGroup.Item>
-                  <ListGroup.Item className="bg-white text-dark" style={{ color: '#000', backgroundColor: '#fff' }}>environment setup</ListGroup.Item>
-                  <ListGroup.Item className="bg-white text-dark" style={{ color: '#000', backgroundColor: '#fff' }}>creating first react app</ListGroup.Item>
-                  <ListGroup.Item className="bg-white text-dark" style={{ color: '#000', backgroundColor: '#fff' }}>assignment 1 intro</ListGroup.Item>
+              <Accordion.Header>Lecture 1 - building interfaces + assignment 1</Accordion.Header>
+              <Accordion.Body className="p-2 bg-white text-dark">
+                <ListGroup variant="flush" className="border rounded bg-white small">
+                  <ListGroup.Item className="bg-white text-dark">overview</ListGroup.Item>
+                  <ListGroup.Item className="bg-white text-dark">setting up html + react</ListGroup.Item>
+                  <ListGroup.Item className="bg-white text-dark">environment setup</ListGroup.Item>
+                  <ListGroup.Item className="bg-white text-dark">creating first react app</ListGroup.Item>
+                  <ListGroup.Item className="bg-white text-dark">assignment 1 intro</ListGroup.Item>
                 </ListGroup>
               </Accordion.Body>
             </Accordion.Item>
 
-            {/* lecture 2 */}
             <Accordion.Item eventKey="1">
-              <Accordion.Header>
-                Lecture 2 - prototyping ui + layout logic
-              </Accordion.Header>
-              <Accordion.Body className="p-3 bg-white text-dark" style={{ color: '#000', backgroundColor: '#fff' }}>
-                <ListGroup variant="flush" className="border rounded bg-white">
-                  <ListGroup.Item className="bg-white text-dark" style={{ color: '#000', backgroundColor: '#fff' }}>wireframes</ListGroup.Item>
-                  <ListGroup.Item className="bg-white text-dark" style={{ color: '#000', backgroundColor: '#fff' }}>low fidelity concepts</ListGroup.Item>
-                  <ListGroup.Item className="bg-white text-dark" style={{ color: '#000', backgroundColor: '#fff' }}>html structure</ListGroup.Item>
-                  <ListGroup.Item className="bg-white text-dark" style={{ color: '#000', backgroundColor: '#fff' }}>creating a prototype</ListGroup.Item>
-                  <ListGroup.Item className="bg-white text-dark" style={{ color: '#000', backgroundColor: '#fff' }}>assignment 2 notes</ListGroup.Item>
+              <Accordion.Header>Lecture 2 - prototyping ui + layout logic</Accordion.Header>
+              <Accordion.Body className="p-2 bg-white text-dark">
+                <ListGroup variant="flush" className="border rounded bg-white small">
+                  <ListGroup.Item className="bg-white text-dark">wireframes</ListGroup.Item>
+                  <ListGroup.Item className="bg-white text-dark">low fidelity concepts</ListGroup.Item>
+                  <ListGroup.Item className="bg-white text-dark">html structure</ListGroup.Item>
+                  <ListGroup.Item className="bg-white text-dark">creating a prototype</ListGroup.Item>
+                  <ListGroup.Item className="bg-white text-dark">assignment 2 notes</ListGroup.Item>
                 </ListGroup>
               </Accordion.Body>
             </Accordion.Item>
 
-            {/* lecture 3 */}
             <Accordion.Item eventKey="2">
-              <Accordion.Header>
-                Lecture 3 - visual design + css + bootstrap
-              </Accordion.Header>
-              <Accordion.Body className="p-3 bg-white text-dark" style={{ color: '#000', backgroundColor: '#fff' }}>
-                <ListGroup variant="flush" className="border rounded bg-white">
-                  <ListGroup.Item className="bg-white text-dark" style={{ color: '#000', backgroundColor: '#fff' }}>css basics</ListGroup.Item>
-                  <ListGroup.Item className="bg-white text-dark" style={{ color: '#000', backgroundColor: '#fff' }}>bootstrap grid</ListGroup.Item>
-                  <ListGroup.Item className="bg-white text-dark" style={{ color: '#000', backgroundColor: '#fff' }}>responsive layout</ListGroup.Item>
-                  <ListGroup.Item className="bg-white text-dark" style={{ color: '#000', backgroundColor: '#fff' }}>assignment 3 prep</ListGroup.Item>
+              <Accordion.Header>Lecture 3 - visual design + css + bootstrap</Accordion.Header>
+              <Accordion.Body className="p-2 bg-white text-dark">
+                <ListGroup variant="flush" className="border rounded bg-white small">
+                  <ListGroup.Item className="bg-white text-dark">css basics</ListGroup.Item>
+                  <ListGroup.Item className="bg-white text-dark">bootstrap grid</ListGroup.Item>
+                  <ListGroup.Item className="bg-white text-dark">responsive layout</ListGroup.Item>
+                  <ListGroup.Item className="bg-white text-dark">assignment 3 prep</ListGroup.Item>
                 </ListGroup>
               </Accordion.Body>
             </Accordion.Item>
 
-            {/* lecture 4 */}
             <Accordion.Item eventKey="3">
-              <Accordion.Header>
-                Lecture 4 - components + reusable design
-              </Accordion.Header>
-              <Accordion.Body className="p-3 bg-white text-dark" style={{ color: '#000', backgroundColor: '#fff' }}>
-                <ListGroup variant="flush" className="border rounded bg-white">
-                  <ListGroup.Item className="bg-white text-dark" style={{ color: '#000', backgroundColor: '#fff' }}>modular components</ListGroup.Item>
-                  <ListGroup.Item className="bg-white text-dark" style={{ color: '#000', backgroundColor: '#fff' }}>state + props basics</ListGroup.Item>
-                  <ListGroup.Item className="bg-white text-dark" style={{ color: '#000', backgroundColor: '#fff' }}>component patterns</ListGroup.Item>
-                  <ListGroup.Item className="bg-white text-dark" style={{ color: '#000', backgroundColor: '#fff' }}>assignment 4 walkthrough</ListGroup.Item>
+              <Accordion.Header>Lecture 4 - components + reusable design</Accordion.Header>
+              <Accordion.Body className="p-2 bg-white text-dark">
+                <ListGroup variant="flush" className="border rounded bg-white small">
+                  <ListGroup.Item className="bg-white text-dark">modular components</ListGroup.Item>
+                  <ListGroup.Item className="bg-white text-dark">state + props basics</ListGroup.Item>
+                  <ListGroup.Item className="bg-white text-dark">component patterns</ListGroup.Item>
+                  <ListGroup.Item className="bg-white text-dark">assignment 4 walkthrough</ListGroup.Item>
                 </ListGroup>
               </Accordion.Body>
             </Accordion.Item>
           </Accordion>
         </Col>
+
+        {/* Status panel */}
+        <Col lg={3} md={3} sm={12}>
+          <CourseStatus />
+        </Col>
       </Row>
     </div>
-  )
+  );
 }

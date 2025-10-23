@@ -1,32 +1,26 @@
 /**
  * KambazLayout
- * Provides the shell for Kambaz pages: left sidebar navigation + main content.
- * Renders children in <main>. Navigation is defined in ./Navigation.
+ * Client layout that shows the global sidebar except on auth routes.
  */
-
 'use client';
+
 import { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import KambazNavigation from './Navigation';
-import "./styles.css";
+import './styles.css';
 
 export default function KambazLayout({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
+  const pathname = (usePathname() ?? '').toLowerCase();
+  const isAuth = pathname.startsWith('/account/signin') || pathname.startsWith('/account/signup');
 
-  if (pathname.includes("/Account/Signin") || pathname.includes("/Account/Signup")) {
+  if (isAuth) {
     return <main className="auth-layout">{children}</main>;
   }
 
   return (
-    <div id="wd-kambaz">
-      <div className="d-flex">
-        <div>
-          <KambazNavigation />
-        </div>
-        <div className="wd-main-content-offset p-3 flex-fill">
-          {children}
-        </div>
-      </div>
+    <div id="wd-kambaz" className="d-flex">
+      <KambazNavigation />
+      <main className="wd-main-content-offset p-3 flex-fill">{children}</main>
     </div>
   );
 }

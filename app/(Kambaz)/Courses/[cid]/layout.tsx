@@ -1,25 +1,31 @@
 'use client';
 
-/**
- * course section layout
- */
+/*
+  course layout
+  reads cid from params or url
+  shows course name and simple sidebar
+*/
+
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
+import { courses } from "../../Database";
+type Course = (typeof courses)[number];
+import { FaAlignJustify } from "react-icons/fa6";
+
 
 export default function CourseLayout({
   children,
+  params,
 }: {
   children: ReactNode;
-  params?: { cid: string }; // intentionally unused on client
+  params: { cid: string };
 }) {
   const pathname = usePathname() || '';
-  // derive cid from the url to avoid async params warnings
-  const cid = (() => {
-    const m = pathname.match(/^\/Courses\/([^/]+)/i);
-    return m?.[1] ?? '';
-  })();
+  const cid = params?.cid ?? (pathname.match(/^\/Courses\/([^/]+)/i)?.[1] ?? '');
+
+  const course = courses.find((course: Course) => course._id === cid);
 
   const items: { href: string; label: string }[] = [
     { href: `/Courses/${cid}/Home`, label: 'Home' },
@@ -38,7 +44,6 @@ export default function CourseLayout({
   return (
     <div className="container-fluid">
       <div className="row">
-        {/* Left: course navigation (hide on small screens) */}
         <aside className="col-md-2 d-none d-md-block" aria-label="Course Navigation">
           <nav>
             <ul className="list-unstyled m-0">
@@ -64,8 +69,13 @@ export default function CourseLayout({
           </nav>
         </aside>
 
-        {/* Right: page content */}
         <main className="col-md-10 pt-2">
+          <div id="wd-courses">
+            <h2 className="text-danger">
+              <FaAlignJustify className="me-4 fs-4 mb-1" />
+              {course?.name}
+            </h2>
+          </div>
           {children}
         </main>
       </div>

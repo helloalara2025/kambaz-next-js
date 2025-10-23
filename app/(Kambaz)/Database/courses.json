@@ -1,0 +1,5 @@
+[
+  { "_id": "RS101", "name": "Rocket Propulsion", "title": "RS101", "image": "/images/reactjs.jpg", "description": "intro and fundamentals" },
+  { "_id": "RS102", "name": "Aerodynamics", "title": "RS102", "image": "/images/algorithms.jpg", "description": "exploration of aerodynamic flows" },
+  { "_id": "RS103", "name": "Spacecraft Design", "title": "RS103", "image": "/images/oop.jpg", "description": "structures, orbits, systems" }
+]

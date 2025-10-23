@@ -1,0 +1,58 @@
+[
+  {
+    "_id": "A101",
+    "title": "Propulsion Assignment",
+    "description": "Analyze rocket propulsion performance and thrust equations in varying conditions.",
+    "course": "RS101"
+  },
+  {
+    "_id": "A102",
+    "title": "Combustion Analysis",
+    "description": "Study fuel efficiency and combustion chamber design to improve performance.",
+    "course": "RS101"
+  },
+  {
+    "_id": "A103",
+    "title": "Nozzle Design Project",
+    "description": "Design and optimize a rocket nozzle for maximum thrust and minimal drag.",
+    "course": "RS101"
+  },
+
+  {
+    "_id": "A201",
+    "title": "Aerodynamics Quiz",
+    "description": "Evaluate understanding of aerodynamic flow and pressure distribution.",
+    "course": "RS102"
+  },
+  {
+    "_id": "A202",
+    "title": "Flow Analysis",
+    "description": "Compare subsonic, transonic, and supersonic flow patterns through simulation.",
+    "course": "RS102"
+  },
+  {
+    "_id": "A203",
+    "title": "Heating Analysis",
+    "description": "Assess aerodynamic heating impacts and propose effective cooling methods.",
+    "course": "RS102"
+  },
+
+  {
+    "_id": "A301",
+    "title": "Structural Design Task",
+    "description": "Draft a spacecraft frame focusing on strength, material, and mass efficiency.",
+    "course": "RS103"
+  },
+  {
+    "_id": "A302",
+    "title": "Orbital Calculations",
+    "description": "Perform orbital mechanics calculations for launch and transfer orbits.",
+    "course": "RS103"
+  },
+  {
+    "_id": "A303",
+    "title": "Systems Engineering Exam",
+    "description": "Integrate propulsion, power, and communication subsystems into one spacecraft model.",
+    "course": "RS103"
+  }
+]

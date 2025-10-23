@@ -1,37 +1,46 @@
-/****
- * kambaz global navigation sidebar
- * refined design
- * serif uni name
- * white nav icons + red accent for active
- */
+'use client';
 
-'use client'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { AiOutlineDashboard } from 'react-icons/ai'
-import { IoCalendarOutline } from 'react-icons/io5'
-import { FaInbox, FaRegCircleUser } from 'react-icons/fa6'
+/*
+  kambaz global navigation sidebar
+  stable, data-driven and layout-ready
+*/
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { AiOutlineDashboard } from 'react-icons/ai';
+import { IoCalendarOutline } from 'react-icons/io5';
+import { LiaBookSolid, LiaCogSolid } from 'react-icons/lia';
+import { FaInbox, FaRegCircleUser } from 'react-icons/fa6';
+import type { ComponentType } from 'react';
+
+type NavItem = { key: string; label: string; href: string; icon: ComponentType<{ size?: number }> };
+
+const NAV_ITEMS: NavItem[] = [
+  { key: 'dashboard', label: 'Dashboard', href: '/Dashboard', icon: AiOutlineDashboard },
+  { key: 'courses', label: 'Courses', href: '/Courses', icon: LiaBookSolid },
+  { key: 'calendar', label: 'Calendar', href: '/Calendar', icon: IoCalendarOutline },
+  { key: 'inbox', label: 'Inbox', href: '/Inbox', icon: FaInbox },
+  { key: 'labs', label: 'Labs', href: '/Labs', icon: LiaCogSolid },
+];
 
 export default function Navigation() {
-  const pathname = usePathname()
-
-  // simple, balanced nav items
-  const navItems = [
-    { href: '/Account/Profile', label: 'Account', icon: <FaRegCircleUser size={22} /> },
-    { href: '/Dashboard', label: 'Dashboard', icon: <AiOutlineDashboard size={22} /> },
-    { href: '/Calendar', label: 'Calendar', icon: <IoCalendarOutline size={22} /> },
-    { href: 'https://mail.google.com', label: 'Inbox', icon: <FaInbox size={22} />, external: true },
-  ]
+  const pathname = (usePathname() ?? '').toLowerCase();
 
   return (
     <aside
       id="wd-kambaz-navigation"
       className="d-flex flex-column align-items-center bg-black text-white position-fixed top-0 bottom-0"
-      style={{ width: 140, paddingTop: 12, paddingBottom: 12, justifyContent: 'space-between', rowGap: 8, boxShadow: 'inset -1px 0 0 #171717' }}
+      style={{
+        width: 140,
+        paddingTop: 12,
+        paddingBottom: 12,
+        justifyContent: 'space-between',
+        rowGap: 8,
+        boxShadow: 'inset -1px 0 0 #171717',
+      }}
     >
       <div className="d-flex flex-column align-items-center w-100">
-        {/* logo text instead of broken image */}
-        <Link
+        <a
           href="https://www.northeastern.edu/"
           target="_blank"
           id="wd-neu-link"
@@ -41,81 +50,44 @@ export default function Navigation() {
             color: '#e11d2f',
             fontSize: 11,
             lineHeight: 1.15,
-            letterSpacing: 0.4,
-            fontWeight: 500,
-            textTransform: 'none',
-            textAlign: 'center'
           }}
         >
-          <span>Northeastern</span>
-          <span>University</span>
-        </Link>
-        <div aria-hidden className="w-100" style={{height:1, background:'#1f1f1f'}} />
+          <img src="/images/NEU.png" width={75} alt="NEU" />
+          NEU
+        </a>
 
-        {/* main nav links */}
-        <nav className="d-flex flex-column align-items-center w-100 mt-2">
-          {navItems.map((item) => {
-            const isActive = !item.external && (pathname?.toLowerCase().startsWith(item.href.toLowerCase().startsWith('/account') ? '/account' : item.href.toLowerCase()))
-            const commonClasses = 'text-decoration-none d-flex flex-column align-items-center py-2 w-100'
-            const activeStyle = isActive
-              ? { color: '#e11d2f', borderLeft: '4px solid #e11d2f', backgroundColor: '#101010' }
-              : { color: '#ffffff' }
-            return (
-              <div key={item.href} className="text-center w-100 mb-3 d-flex justify-content-center">
-                {item.external ? (
-                  <a
-                    href={item.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`${commonClasses}`}
-                    style={activeStyle}
-                  >
-                    <div className="d-flex flex-column align-items-center w-100" style={{rowGap:4}}>
-                      {item.icon}
-                      <span className="small mt-1">{item.label}</span>
-                    </div>
-                  </a>
-                ) : (
-                  <Link href={item.href} className={`${commonClasses}`} style={activeStyle}>
-                    <div className="d-flex flex-column align-items-center w-100" style={{rowGap:4}}>
-                      {item.icon}
-                      <span className="small mt-1">{item.label}</span>
-                    </div>
-                  </Link>
-                )}
-              </div>
-            )
-          })}
-        </nav>
+        {NAV_ITEMS.map(({ key, label, href, icon: Icon }) => {
+          const active = pathname.startsWith(href.toLowerCase());
+          const classes = `text-center w-100 d-block py-2 px-3 rounded-2 ${
+            active ? 'bg-white text-danger' : 'text-white'
+          }`;
+          return (
+            <div key={key} className="text-center w-100 mb-2 d-flex justify-content-center">
+              <Link href={href} className={classes} aria-current={active ? 'page' : undefined}>
+                <div className="d-flex flex-column align-items-center w-100" style={{ rowGap: 4 }}>
+                  <Icon size={22} />
+                  <span className="small mt-1">{label}</span>
+                </div>
+              </Link>
+            </div>
+          );
+        })}
       </div>
 
-      <div className="w-100 mt-auto px-2">
-        <div aria-hidden className="w-100 mb-2" style={{height:1, background:'#1f1f1f'}} />
+      <div className="text-center w-100 mb-2 d-flex justify-content-center">
         <Link
-          href="/Account/Signin"
-          className="text-decoration-none d-flex justify-content-center align-items-center w-100"
-          style={{
-            color: '#ffffff',
-            background: '#111',
-            border: '1px solid #2a2a2a',
-            borderRadius: 8,
-            padding: '8px 10px'
-          }}
+          href="/Account"
+          className={`text-center w-100 d-block py-2 px-3 rounded-2 ${
+            pathname.startsWith('/account') ? 'bg-white text-danger' : 'text-white'
+          }`}
+          aria-current={pathname.startsWith('/account') ? 'page' : undefined}
         >
-          Sign out
+          <div className="d-flex flex-column align-items-center w-100" style={{ rowGap: 4 }}>
+            <FaRegCircleUser size={22} />
+            <span className="small mt-1">Account</span>
+          </div>
         </Link>
       </div>
-
-      {/* subtle hover + type rules */}
-      <style jsx global>{`
-        #wd-kambaz-navigation a:hover {
-          color: #e11d2f;
-          background-color: #101010;
-        }
-        #wd-kambaz-navigation span { font-size: 0.75rem; letter-spacing: .3px; }
-        #wd-kambaz-navigation nav a,
-        #wd-kambaz-navigation nav .active { transition: background-color .15s ease, color .15s ease; }
-      `}</style>
     </aside>
-  )
+  );
 }
