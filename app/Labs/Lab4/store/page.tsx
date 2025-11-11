@@ -1,10 +1,10 @@
 "use client";
 
 import { configureStore } from "@reduxjs/toolkit";
-import addReducer from "../ReduxExamples/AddRedux/AddReducer";
-import helloReducer from "../ReduxExamples/HelloRedux/HelloReducer";
-import counterReducer from "../ReduxExamples/CounterRedux/CounterReducer";
-import todosReducer from "../ReduxExamples/todos/TodosReducer";
+import addReducer from "../_disablederrors/ReduxExamples/AddRedux/AddReducer";
+import helloReducer from "../_disablederrors/ReduxExamples/HelloRedux/HelloReducer";
+import counterReducer from "../_disablederrors/ReduxExamples/CounterRedux/CounterReducer";
+import todosReducer from "../_disablederrors/ReduxExamples/todos/TodosReducer";
 
 const store = configureStore({
   reducer: {
