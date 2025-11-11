@@ -2,66 +2,82 @@
   dashboard
   renders data-driven courses grid from db
 */
-'use client';
+'use client'
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-import Link from 'next/link';
-import * as db from '../Database';
-import { Row, Col, Card, Button, Form, InputGroup } from 'react-bootstrap';
+import Link from 'next/link'
 
-// local shape for course json
-type Course = { _id: string; title: string; image: string; description?: string };
+import { useDispatch, useSelector } from 'react-redux'
+import { toggleEnroll, isCourseEnrolled } from '../Enrollments/reducer'
+import { useState } from 'react'
 
-const colors = ['#007bff', '#28a745', '#ffc107'];
+import * as dbmod from '../Database'
 
-export default function Dashboard() {
-  const courses = db.courses as Course[];
+const DB: any = (dbmod as any)?.default ?? (dbmod as any) ?? {}
+const coursesFromDb: any[] = DB.courses ?? []
+
+export default function DashboardPage() {
+  const [showEnrollments, setShowEnrollments] = useState(false)
+
+  interface Course {
+    _id: string
+    title?: string
+    name?: string
+    number?: string
+    // add other fields as needed
+  }
+
+  function EnrollmentListItem({ course }: { course: Course }) {
+    const enrolled = useSelector(isCourseEnrolled(course._id)) as boolean
+    const dispatchLocal = useDispatch()
+    return (
+      <li className="border p-3 rounded flex items-center justify-between">
+        <div>
+          <div className="font-medium">{course.title || course.name}</div>
+          <div className="text-sm opacity-70">{course.number || ''}</div>
+        </div>
+        <button
+          onClick={() => dispatchLocal(toggleEnroll(course._id))}
+          aria-label={enrolled ? 'unenroll' : 'enroll'}
+          title={enrolled ? 'unenroll' : 'enroll'}
+        >
+          {enrolled ? 'unenroll' : 'enroll'}
+        </button>
+      </li>
+    )
+  }
+
   return (
-    <div id="wd-dashboard" className="p-4" style={{ maxWidth: '1000px', marginLeft: '2rem', paddingLeft: '2rem' }}>
-      <div className="d-flex align-items-center justify-content-between mb-3">
-        <h2 id="wd-dashboard-title" className="m-0">Dashboard</h2>
-        <InputGroup style={{ maxWidth: 360 }}>
-          <Form.Control placeholder="Search courses" aria-label="Search courses" />
-          <Button variant="outline-secondary">Search</Button>
-        </InputGroup>
+    <section>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold">dashboard</h1>
+        <button
+          onClick={() => setShowEnrollments(s => !s)}
+          className="px-3 py-1 border rounded"
+          aria-pressed={showEnrollments}
+        >
+          {showEnrollments ? 'hide enrollments' : 'show enrollments'}
+        </button>
       </div>
 
-      <h5 id="wd-dashboard-published" className="text-muted mb-3">
-        Published Courses <span className="badge text-bg-secondary ms-1">{courses.length}</span>
-      </h5>
-
-      <div id="wd-dashboard-courses">
-        <Row xs={1} sm={2} md={3} className="g-4 justify-content-start">
-          {courses.map((c: Course, i: number) => (
-            <Col key={c._id} className="wd-dashboard-course">
-              <Card className="h-100 shadow-sm border-0 text-center" style={{ minHeight: 220, maxWidth: 280, margin: '0 auto 1rem 0', backgroundColor: '#ffffff', overflow: 'hidden', transition: 'transform 0.2s ease, box-shadow 0.2s ease' }}>
-                <div
-                  style={{
-                    height: '100px',
-                    backgroundColor: colors[i % colors.length],
-                    borderTopLeftRadius: '6px',
-                    borderTopRightRadius: '6px',
-                  }}
-                />
-                <Card.Body className="d-flex flex-column justify-content-between">
-                  <div>
-                    <Card.Title className="text-truncate" title={c.title}>{c.title}</Card.Title>
-                    <p className="text-muted small mb-2">{c.description ?? ''}</p>
-                  </div>
-                  <Link href={`/Courses/${c._id}/Home`} className="btn btn-primary btn-sm mt-auto">
-                    Go
-                  </Link>
-                </Card.Body>
-              </Card>
-            </Col>
+      {showEnrollments ? (
+        <ul className="grid gap-3 md:grid-cols-2">
+          {coursesFromDb.map(c => (
+            <EnrollmentListItem key={c._id} course={c} />
           ))}
-        </Row>
-        <style jsx>{`
-          .wd-dashboard-course:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-          }
-        `}</style>
-      </div>
-    </div>
-  );
+        </ul>
+      ) : (
+        <ul className="grid gap-3 md:grid-cols-2">
+          {coursesFromDb.map(c => (
+            <li key={c._id} className="border p-3 rounded">
+              <Link className="underline" href={`/Courses/${c._id}/Home`}>
+                {c.title || c.name}
+              </Link>
+              <div className="text-sm opacity-70">{c.number || ''}</div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  )
 }

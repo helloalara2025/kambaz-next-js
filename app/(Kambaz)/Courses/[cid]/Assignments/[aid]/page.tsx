@@ -1,120 +1,145 @@
-'use client';
+'use client'
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-/*
-  assignment editor
-  loads single assignment dynamically from db.assignments
-*/
+// assignment editor
+// simple form used for both new and edit
 
-import { Form, Row, Col, Button, Breadcrumb, Card } from 'react-bootstrap';
-import { useParams } from 'next/navigation';
-import Link from 'next/link';
-import * as db from '../../../../Database';
-
-type Assignment = { _id: string; title: string; course: string };
+import { useParams, useRouter } from 'next/navigation'
+import { useDispatch, useSelector } from 'react-redux'
+import { useMemo, useState } from 'react'
+import {
+  addNewAssignment,
+  updateAssignment,
+  selectAssignments,
+} from '../../../reducer'
 
 export default function AssignmentEditor() {
-  const { cid, aid } = useParams<{ cid: string; aid: string }>();
-  const assignment = (db.assignments as Assignment[]).find((a) => a._id === aid && a.course === cid);
+  const { cid, aid } = useParams() as { cid: string; aid: string }
+  const router = useRouter()
+  const dispatch = useDispatch()
+
+  const all = useSelector((s: any) => selectAssignments(s)) || []
+  const current = useMemo(
+    () => all.find((a: any) => a._id === aid),
+    [all, aid]
+  )
+  const isNew = aid === 'new' || aid == null
+
+  type FormState = {
+    name: string
+    description: string
+    points: string | number
+    dueDate: string
+    availableFrom: string
+    availableUntil: string
+  }
+
+  const [form, setForm] = useState<FormState>({
+    name: current?.name ?? '',
+    description: current?.description ?? '',
+    points: current?.points ?? '',
+    dueDate: current?.dueDate ?? '',
+    availableFrom: current?.availableFrom ?? '',
+    availableUntil: current?.availableUntil ?? '',
+  })
+
+  const update = (k: keyof FormState, v: FormState[keyof FormState]) =>
+    setForm(s => ({ ...s, [k]: v } as FormState))
+
+  const save = () => {
+    const payload = {
+      name: form.name?.trim() || 'untitled assignment',
+      description: form.description || '',
+      points: form.points === '' ? undefined : Number(form.points),
+      dueDate: form.dueDate || undefined,
+      availableFrom: form.availableFrom || undefined,
+      availableUntil: form.availableUntil || undefined,
+      course: cid,
+    } as any
+
+    if (isNew) {
+      dispatch(addNewAssignment(payload))
+    } else if (current) {
+      dispatch(updateAssignment({ ...current, ...payload, _id: current._id }))
+    }
+
+    router.push(`/Kambaz/Courses/${cid}/Assignments`)
+  }
+
+  const cancel = () => router.push(`/Kambaz/Courses/${cid}/Assignments`)
 
   return (
-    <div id="wd-assignment-editor" className="p-3 container-xxl" style={{ maxWidth: '1100px' }}>
-      <h4 className="fw-semibold mb-1">Assignment Editor</h4>
-      <Breadcrumb className="mb-3 small text-muted">
-        <Breadcrumb.Item linkAs={Link} href="/Dashboard">Dashboard</Breadcrumb.Item>
-        <Breadcrumb.Item linkAs={Link} href="/Courses">Courses</Breadcrumb.Item>
-        <Breadcrumb.Item linkAs={Link} href={`/Courses/${cid}/Home`}>Course Homepage</Breadcrumb.Item>
-        <Breadcrumb.Item linkAs={Link} href={`/Courses/${cid}/Assignments`}>Assignments</Breadcrumb.Item>
-        <Breadcrumb.Item active>{assignment?.title || aid}</Breadcrumb.Item>
-      </Breadcrumb>
+    <section className="p-3 max-w-xl space-y-4">
+      <h4>{isNew ? 'new assignment' : 'edit assignment'}</h4>
 
-      <Card className="shadow-sm border-0 p-4">
-        <Form>
-          <Form.Group className="mb-3">
-            <Form.Label className="fw-semibold">Assignment Name</Form.Label>
-            <Form.Control id="wd-assignment-name" defaultValue={assignment?.title || `Assignment ${aid}`} />
-          </Form.Group>
+      <form
+        onSubmit={e => {
+          e.preventDefault()
+          save()
+        }}
+        className="flex flex-col gap-3"
+      >
+        <label className="flex flex-col">
+          <span>name</span>
+          <input
+            value={form.name}
+            onChange={e => update('name', e.target.value)}
+            required
+          />
+        </label>
 
-          <Form.Group className="mb-4">
-            <Form.Label className="fw-semibold">Description</Form.Label>
-            <Form.Control as="textarea" rows={6} placeholder="Enter assignment details here." />
-          </Form.Group>
+        <label className="flex flex-col">
+          <span>description</span>
+          <textarea
+            value={form.description}
+            onChange={e => update('description', e.target.value)}
+          />
+        </label>
 
-          <Row className="g-4">
-            <Col md={6}>
-              <Form.Group className="mb-3">
-                <Form.Label className="fw-semibold">Points</Form.Label>
-                <Form.Control id="wd-points" type="number" defaultValue={100} />
-              </Form.Group>
+        <label className="flex flex-col">
+          <span>points</span>
+          <input
+            type="number"
+            value={form.points}
+            onChange={e => update('points', e.target.value)}
+            min={0}
+          />
+        </label>
 
-              <Form.Group className="mb-3">
-                <Form.Label className="fw-semibold">Assignment Group</Form.Label>
-                <Form.Select id="wd-assignment-group" defaultValue="ASSIGNMENTS">
-                  <option>ASSIGNMENTS</option>
-                  <option>QUIZZES</option>
-                  <option>EXAMS</option>
-                  <option>PROJECTS</option>
-                </Form.Select>
-              </Form.Group>
+        <label className="flex flex-col">
+          <span>due date</span>
+          <input
+            type="date"
+            value={form.dueDate}
+            onChange={e => update('dueDate', e.target.value)}
+          />
+        </label>
 
-              <Form.Group className="mb-3">
-                <Form.Label className="fw-semibold">Display Grade as</Form.Label>
-                <Form.Select id="wd-display-grade" defaultValue="Points">
-                  <option>Points</option>
-                  <option>Percentage</option>
-                  <option>Letter Grade</option>
-                </Form.Select>
-              </Form.Group>
+        <label className="flex flex-col">
+          <span>available from</span>
+          <input
+            type="date"
+            value={form.availableFrom}
+            onChange={e => update('availableFrom', e.target.value)}
+          />
+        </label>
 
-              <Form.Group className="mb-3">
-                <Form.Label className="fw-semibold">Submission Type</Form.Label>
-                <Form.Select id="wd-submission-type" defaultValue="Online">
-                  <option>Online</option>
-                  <option>On Paper</option>
-                  <option>No Submission</option>
-                </Form.Select>
-                <div className="mt-2">
-                  <div className="fw-semibold small mb-1">Online Entry Options</div>
-                  {['Text Entry', 'Website URL', 'Media Recordings', 'File Uploads'].map((label) => (
-                    <Form.Check key={label} type="checkbox" label={label} />
-                  ))}
-                </div>
-              </Form.Group>
-            </Col>
+        <label className="flex flex-col">
+          <span>available until</span>
+          <input
+            type="date"
+            value={form.availableUntil}
+            onChange={e => update('availableUntil', e.target.value)}
+          />
+        </label>
 
-            <Col md={6}>
-              <div className="border rounded p-3">
-                <div className="fw-semibold mb-2">Assign</div>
-
-                <Form.Group className="mb-3">
-                  <Form.Label className="fw-semibold">Due</Form.Label>
-                  <Form.Control id="wd-due" type="date" />
-                </Form.Group>
-
-                <Row className="g-3">
-                  <Col>
-                    <Form.Group>
-                      <Form.Label className="fw-semibold">Available from</Form.Label>
-                      <Form.Control id="wd-available-from" type="date" />
-                    </Form.Group>
-                  </Col>
-                  <Col>
-                    <Form.Group>
-                      <Form.Label className="fw-semibold">Until</Form.Label>
-                      <Form.Control id="wd-until" type="date" />
-                    </Form.Group>
-                  </Col>
-                </Row>
-              </div>
-            </Col>
-          </Row>
-
-          <hr className="my-4" />
-          <div className="d-flex justify-content-end">
-            <Button variant="outline-secondary" className="me-2">Cancel</Button>
-            <Button variant="danger">Save</Button>
-          </div>
-        </Form>
-      </Card>
-    </div>
-  );
+        <div className="flex gap-2">
+          <button type="submit">save</button>
+          <button type="button" onClick={cancel}>
+            cancel
+          </button>
+        </div>
+      </form>
+    </section>
+  )
 }

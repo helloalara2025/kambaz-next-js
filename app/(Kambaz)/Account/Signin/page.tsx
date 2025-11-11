@@ -7,11 +7,35 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Inter } from 'next/font/google';
 import Link from 'next/link';
+import { useDispatch } from 'react-redux';
+
+interface User {
+  id?: string;
+  username: string;
+  password?: string;
+  [key: string]: unknown;
+}
+
+type SetCurrentUserAction = {
+  type: 'SET_CURRENT_USER';
+  payload: User;
+};
+
+const setCurrentUser = (user: User): SetCurrentUserAction => ({ type: 'SET_CURRENT_USER', payload: user });
+import * as DBModule from '../../Database';
 
 const inter = Inter({ subsets: ['latin'] });
 
+// resolve users from database module in a safe way
+type DBWithUsers = { users?: User[]; default?: { users?: User[] } };
+
+const db = DBModule as unknown as DBWithUsers;
+
+const USERS: User[] = db.users ?? db.default?.users ?? [];
+
 export default function SigninPage() {
   const router = useRouter();
+  const dispatch = useDispatch();
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -19,6 +43,12 @@ export default function SigninPage() {
   // Handle form submission and navigate to Dashboard
   const handleSignIn = (e: React.FormEvent) => {
     e.preventDefault();
+    const user = USERS.find(
+      (u: User | undefined) => u?.username === username && u?.password === password
+    );
+    const sessionUser: User = user ?? { id: 'guest', username };
+
+    dispatch(setCurrentUser(sessionUser));
     router.push('/Dashboard');
   };
 

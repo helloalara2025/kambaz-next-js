@@ -8,6 +8,7 @@ export default function Labs() {
         <li><Link href="/Labs/Lab1">Lab 1: HTML Examples</Link></li>
         <li><Link href="/Labs/Lab2">Lab 2: CSS Basics</Link></li>
         <li><Link href="/Labs/Lab3">Lab 3: JavaScript Fundamentals</Link></li>
+        <li><Link href="/Labs/Lab4">Lab 4: React</Link></li>
         <li><Link href="/Dashboard" id="wd-kambaz-main-link">Kambaz</Link></li> {/* new */}
       </ul>
     </div>

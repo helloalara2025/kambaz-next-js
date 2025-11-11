@@ -1,46 +1,69 @@
 "use client";
 /*
-  Kambaz – Account Navigation
-  - Account-specific links (Dashboard, Courses, Calendar, Profile)
-  - Hidden on Signin/Signup
+  kambaz – account navigation
+  - toggles auth links based on signed‑in user
+  - shows: dashboard, courses, calendar, inbox, neu, and auth links
 */
 
-import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useSelector } from "react-redux";
+
+// minimal root state for selector
+type RootState = { accountReducer: { currentUser: unknown | null } };
 
 export default function AccountNavigation() {
-  const pathname = usePathname();
-  if (
-    pathname?.toLowerCase().startsWith("/account/signin") ||
-    pathname?.toLowerCase().startsWith("/account/signup") ||
-    pathname?.toLowerCase().startsWith("/account/profile") 
-  ) {
-    return null; // hide account nav on Signin/Signup
-  }
+  const pathname = usePathname()?.toLowerCase() ?? "";
+  const { currentUser } = useSelector((s: RootState) => s.accountReducer);
+  const isSignedIn = !!currentUser;
+
+  // base links always visible
+  const base = [
+    { label: "Dashboard", href: "/dashboard", external: false },
+    { label: "Courses", href: "/Courses", external: false },
+    { label: "Calendar", href: "/calendar", external: false },
+    { label: "Inbox", href: "https://mail.google.com/", external: true },
+    { label: "NEU", href: "https://www.northeastern.edu/", external: true },
+  ];
+
+  // auth-dependent links
+  const authed = isSignedIn
+    ? [
+        { label: "Profile", href: "/Account/Profile", external: false },
+        { label: "Sign out", href: "/Account/Signin", external: false },
+      ]
+    : [
+        { label: "Signin", href: "/Account/Signin", external: false },
+        { label: "Signup", href: "/Account/Signup", external: false },
+      ];
+
+  const links = [...base, ...authed];
+
   return (
     <nav aria-label="Account navigation">
       <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "10px" }}>
-        <li>
-          <Link href="/dashboard" id="wd-dashboard-link">Dashboard</Link>
-        </li>
-        <li>
-          <Link href="/Courses" id="wd-courses-link">Courses</Link>
-        </li>
-        <li>
-          <Link href="/calendar" id="wd-calendar-link">Calendar</Link>
-        </li>
-        <li>
-          <a href="https://mail.google.com/" target="_blank" rel="noopener noreferrer" id="wd-inbox-link">Inbox</a>
-        </li>
-        <li>
-          <a href="https://www.northeastern.edu/" target="_blank" rel="noopener noreferrer" id="wd-neu-link">NEU</a>
-        </li>
-        <li>
-          <Link href="/Account/Profile" id="wd-profile-link">Profile</Link>
-        </li>
-        <li>
-          <Link href="/Account/Signin" id="wd-signout-link">Sign out</Link>
-        </li>
+        {links.map((l) => (
+          <li key={l.label}>
+            {l.external ? (
+              <a
+                href={l.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                id={`wd-${l.label.toLowerCase()}-link`}
+              >
+                {l.label}
+              </a>
+            ) : (
+              <Link
+                href={l.href}
+                id={`wd-${l.label.toLowerCase().replace(/\s+/g, "-")}-link`}
+                className={pathname.startsWith(l.href.toLowerCase()) ? "active" : undefined}
+              >
+                {l.label}
+              </Link>
+            )}
+          </li>
+        ))}
       </ul>
     </nav>
   );
