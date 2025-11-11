@@ -1,3 +1,4 @@
+"use client";
 import { useSelector, useDispatch } from "react-redux";
 import { increment, decrement } from "./CounterReducer";
 export default function CounterRedux() {
@@ -14,4 +15,3 @@ export default function CounterRedux() {
       <hr/>
     </div>
 );}
-

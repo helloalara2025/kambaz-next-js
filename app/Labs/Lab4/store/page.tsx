@@ -1,3 +1,5 @@
+"use client";
+
 import { configureStore } from "@reduxjs/toolkit";
 import addReducer from "../ReduxExamples/AddRedux/AddReducer";
 import helloReducer from "../ReduxExamples/HelloRedux/HelloReducer";
