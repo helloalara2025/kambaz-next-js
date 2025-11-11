@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { redirect } from 'next/dist/client/components/navigation';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { setCurrentUser } from '../reducer';
+import { setCurrentUser } from '../Reducer';
 
 interface RootState {
   accountReducer: {
@@ -33,7 +33,6 @@ export default function ProfilePage() {
   const { currentUser } = useSelector((s: RootState) => s.accountReducer);
   const [profile, setProfile] = useState<Profile>({});
 
-  // redirect if not signed in, otherwise seed form
   useEffect(() => {
     if (!currentUser) {
       redirect('/Account/Signin');
@@ -47,7 +46,6 @@ export default function ProfilePage() {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    // no-op for now; would dispatch update action here
   };
 
   const signout = () => {
