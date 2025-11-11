@@ -5,11 +5,13 @@
 import { configureStore } from '@reduxjs/toolkit'
 import assignmentsReducer from './Courses/reducer'
 import enrollmentsReducer from './Enrollments/reducer'
+import accountReducer from './Account/Reducer'
 
 export const store = configureStore({
   reducer: {
     assignments: assignmentsReducer,
     enrollments: enrollmentsReducer,
+    accountReducer: accountReducer,
   },
 })
 
