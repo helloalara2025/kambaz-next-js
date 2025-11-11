@@ -1,4 +1,4 @@
-'use client';
+"use client";
 /**
  * Profile Page — wired to Account reducer
  * - if no currentUser -> redirect to /Account/Signin
