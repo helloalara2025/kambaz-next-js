@@ -1,6 +1,6 @@
 "use client";
 
-import store from "./store";
+import store from "./_disablederrors/store";
 import { Provider } from "react-redux";
 import PassingFunctions from "./PassingFunctions";
 
