@@ -1,43 +1,62 @@
-'use client';
+'use client'
 
-/*
-  course home page
-  real data-driven version
-*/
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { useParams } from 'next/navigation';
-import Link from 'next/link';
-import * as db from '../../Database';
+// assignments list
+// dynamic from redux slice filtered by course id
 
-type Course = {
-  _id: string;
-  name: string;
-  description?: string;
-};
+import { useParams } from 'next/navigation'
+import Link from 'next/link'
+import { useSelector, useDispatch } from 'react-redux'
+import { selectAssignments, deleteAssignment } from '../reducer'
 
-export default function CourseHome() {
-  const { cid } = useParams<{ cid: string }>();
-  const course = (db.courses as Course[]).find((c) => c._id === cid);
+export default function AssignmentsPage() {
+  const { cid } = useParams<{ cid: string }>()
+  const dispatch = useDispatch()
 
-  if (!course) {
-    return (
-      <div className="p-4">
-        <h2 className="text-danger">Course not found</h2>
-        <p className="text-muted">Invalid or missing course ID: {cid}</p>
-      </div>
-    );
-  }
+  // get all assignments from slice
+  const all = useSelector(selectAssignments) as any[]
+
+  // filter by course id if present on items, else show all
+  const hasCourseField =
+    all[0] && ('course' in all[0] || 'courseId' in all[0] || 'cid' in all[0])
+
+  const assignments = hasCourseField
+    ? all.filter((a: any) => (a.course ?? a.courseId ?? a.cid) === cid)
+    : all
 
   return (
-    <div id="wd-course-home" className="p-4">
-      <h2 className="text-primary">{course.name}</h2>
-      <p className="text-muted small mb-4">{course.description}</p>
+    <div id="wd-assignments" className="p-3" style={{ maxWidth: 600 }}>
+      <h4>assignments</h4>
+      <ul className="space-y-2">
+        {assignments.map((a: any) => (
+          <li key={a._id} className="flex items-center justify-between border rounded p-2">
+            <Link
+              className="underline"
+              href={`/Courses/${cid}/Assignments/${a._id}`}
+            >
+              {a.name || a.title || 'untitled'}
+            </Link>
+            <button
+              onClick={() => {
+                if (confirm(`delete ${a.name || a.title}?`)) {
+                  dispatch(deleteAssignment(a._id))
+                }
+              }}
+              title="delete"
+              aria-label="delete assignment"
+            >
+              delete
+            </button>
+          </li>
+        ))}
+      </ul>
 
-      <div className="d-flex gap-2">
-        <Link href={`/Courses/${cid}/Modules`} className="btn btn-outline-secondary btn-sm">Modules</Link>
-        <Link href={`/Courses/${cid}/Assignments`} className="btn btn-outline-secondary btn-sm">Assignments</Link>
-        <Link href={`/Courses/${cid}/People/Table`} className="btn btn-outline-secondary btn-sm">People</Link>
+      <div className="mt-3">
+        <Link href={`/Courses/${cid}/Assignments/new`} className="underline">
+          + assignment
+        </Link>
       </div>
     </div>
-  );
+  )
 }
