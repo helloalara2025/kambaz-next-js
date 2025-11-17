@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { modules } from "../../../Database";
 import { v4 as uuidv4 } from "uuid";
 
 type Module = {
@@ -14,12 +13,15 @@ interface ModuleState {
   modules: Module[];
 }
 
-const initialState: ModuleState = { modules: modules as Module[] };
+const initialState: ModuleState = { modules: [] };
 
 const modulesSlice = createSlice({
   name: "modules",
   initialState,
   reducers: {
+    setModules: (state, { payload }: PayloadAction<Module[]>) => {
+      state.modules = payload;
+    },
     addModule: (state, { payload: module }: PayloadAction<Module>) => {
       const newModule: Module = {
         _id: uuidv4(),
@@ -43,5 +45,6 @@ const modulesSlice = createSlice({
   },
 });
 
-export const { addModule, deleteModule, updateModule, editModule } = modulesSlice.actions;
+export const { addModule, deleteModule, updateModule, editModule, setModules } =
+  modulesSlice.actions;
 export default modulesSlice.reducer;

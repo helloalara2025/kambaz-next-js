@@ -5,7 +5,7 @@
 import { configureStore } from '@reduxjs/toolkit'
 import assignmentsReducer from './Courses/reducer'
 import enrollmentsReducer from './Enrollments/reducer'
-import accountReducer from './Account/Reducer'
+import accountReducer from './Account/reducer'
 
 export const store = configureStore({
   reducer: {

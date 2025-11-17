@@ -1,92 +1,88 @@
 "use client";
+
 /**
  * Signup Page
  */
+
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { useDispatch } from "react-redux";
+import { useState } from "react";
+import { FormControl, Button } from "react-bootstrap";
+import { setCurrentUser } from "../Reducer";
+import * as client from "../client";
+
+type SignupUser = {
+  username?: string;
+  password?: string;
+};
 
 export default function Signup() {
+  const [user, setUser] = useState<SignupUser>({});
+  const dispatch = useDispatch();
+
+  const signup = async () => {
+    const currentUser = await client.signup(user);
+    dispatch(setCurrentUser(currentUser));
+    redirect("/Account/Profile");
+  };
+
   return (
     <main
       id="wd-signup-screen"
-      style={{
-        position: "fixed",
-        inset: 0,
-        display: "grid",
-        placeItems: "center",
-        padding: "2rem",
-        boxSizing: "border-box",
-        background: "#fafbfc",
-      }}
+      className="wd-signup-screen d-flex justify-content-center align-items-center p-4"
     >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "440px",
-          padding: "2rem",
-          border: "1px solid #e5e7eb",
-          borderRadius: "12px",
-          background: "#fff",
-          boxShadow: "0 1px 2px rgba(0,0,0,.04)",
-        }}
-      >
-        <h2 style={{ textAlign: "center", margin: 0 }}>Sign up for Kambaz</h2>
-        <p style={{ textAlign: "center", margin: "6px 0 18px", color: "#64748b" }}>
+      <div className="w-100" style={{ maxWidth: 440 }}>
+        <h2 className="text-center m-0">Sign up for Kambaz</h2>
+        <p className="text-center mt-1 mb-3 text-secondary">
           Create your account to access courses and dashboards.
         </p>
 
         {/* Username */}
-        <label htmlFor="wd-su-username" style={{ display: "block", fontWeight: 600 }}>Username</label>
-        <input
+        <label htmlFor="wd-su-username" className="fw-semibold">
+          Username
+        </label>
+        <FormControl
           id="wd-su-username"
-          type="text"
-          defaultValue="newuser"
-          placeholder="e.g., alara.h"
-          aria-describedby="wd-su-username-tip"
-          title="3–20 characters; letters, numbers, underscores"
-          className="wd-username"
-          style={{ width: "100%", padding: "0.65rem", marginTop: 6, border: "1px solid #cbd5e1", borderRadius: 8 }}
+          className="wd-username mb-2"
+          placeholder="username"
+          value={user.username ?? ""}
+          onChange={(e) =>
+            setUser({ ...user, username: e.target.value })
+          }
         />
-        <small id="wd-su-username-tip" style={{ display: "block", margin: "6px 0 14px", color: "#64748b" }}>
-          Use 3–20 characters. You can include letters, numbers, and underscores.
-        </small>
 
         {/* Password */}
-        <label htmlFor="wd-su-password" style={{ display: "block", fontWeight: 600 }}>Password</label>
-        <input
+        <label htmlFor="wd-su-password" className="fw-semibold">
+          Password
+        </label>
+        <FormControl
           id="wd-su-password"
+          className="wd-password mb-3"
           type="password"
-          defaultValue="pass123!"
-          placeholder="At least 8 characters"
-          aria-describedby="wd-su-password-tip"
-          title="Minimum 8 characters; add a number and symbol for strength"
-          className="wd-password"
-          style={{ width: "100%", padding: "0.65rem", marginTop: 6, border: "1px solid #cbd5e1", borderRadius: 8 }}
-        />
-        <small id="wd-su-password-tip" style={{ display: "block", margin: "6px 0 14px", color: "#64748b" }}>
-          Minimum 8 characters. Mix letters, numbers, and a symbol for a strong password.
-        </small>
-
-        {/* Verify Password */}
-        <label htmlFor="wd-su-password-verify" style={{ display: "block", fontWeight: 600 }}>Verify password</label>
-        <input
-          id="wd-su-password-verify"
-          type="password"
-          defaultValue="pass123!"
-          placeholder="Re-enter your password"
-          className="wd-password-verify"
-          style={{ width: "100%", padding: "0.65rem", marginTop: 6, border: "1px solid #cbd5e1", borderRadius: 8 }}
+          placeholder="password"
+          value={user.password ?? ""}
+          onChange={(e) =>
+            setUser({ ...user, password: e.target.value })
+          }
         />
 
-        {/* Primary action */}
-        <div style={{ display: "flex", justifyContent: "center", marginTop: 18 }}>
-          <Link href="/Account/Profile" id="wd-su-submit" className="btn btn-primary">Sign up</Link>
+        <div className="d-grid gap-2">
+          <Button
+            id="wd-su-submit"
+            className="wd-signup-btn"
+            variant="primary"
+            onClick={signup}
+          >
+            Signup
+          </Button>
         </div>
 
-        <style jsx>{`
-          .btn { display: inline-block; padding: 10px 14px; border-radius: 8px; text-decoration: none; }
-          .btn-primary { background: #0b62d6; color: #fff; }
-          .btn-primary:hover { filter: brightness(.95); }
-        `}</style>
+        <div className="mt-2">
+          <Link href="/Account/Signin" className="wd-signin-link">
+            Sign in
+          </Link>
+        </div>
       </div>
     </main>
   );
