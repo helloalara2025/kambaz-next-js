@@ -10,7 +10,10 @@ export default function Session({ children }: { children: any }) {
       const currentUser = await client.profile();
       dispatch(setCurrentUser(currentUser));
     } catch (err: any) {
-      console.error(err);
+      if (err?.response?.status !== 401) {
+        console.error("An unexpected error occurred during profile fetch:", err);
+      }
+      // console.error(err);
     }
     setPending(false);
   };
