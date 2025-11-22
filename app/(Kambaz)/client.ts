@@ -1,3 +1,1 @@
-// app/(Kambaz)/client.ts
-export const BASE_API =
-  process.env.NEXT_PUBLIC_BASE_API || "http://localhost:4000/api";
+export const BASE_API = process.env.NEXT_PUBLIC_BASE_API || "http://localhost:4000";

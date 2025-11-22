@@ -1,7 +1,6 @@
-import { createRequire } from "module"; // helper to use require in esm
-const require = createRequire(import.meta.url); // connect require to this file
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
 
-// load json files
 const db = {
   courses: require("./courses.json"),
   assignments: require("./assignments.json"),

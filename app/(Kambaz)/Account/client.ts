@@ -1,57 +1,52 @@
+"use client";
+
 import axios from "axios";
+import type { User } from "./reducer";
 
-export const HTTP_SERVER = process.env.NEXT_PUBLIC_HTTP_SERVER;
+// base url for node server
+// use env var in vercel when deployed
+const SERVER =
+  process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:4000";
 
-// axios instance that sends cookies for session
-const axiosWithCredentials = axios.create({
-  withCredentials: true,
-});
+const API = `${SERVER}/api/users`;
 
-export const USERS_API = `${HTTP_SERVER}/api/users`;
+// send cookies with every request
+axios.defaults.withCredentials = true;
 
-// create a new user and sign them in
-export const signup = async (user: any) => {
-  const { data } = await axiosWithCredentials.post(
-    `${USERS_API}/signup`,
-    user
-  );
-  return data;
-};
+// sign in user with username and password
+export async function signin(credentials: {
+  username: string;
+  password: string;
+}): Promise<User> {
+  const response = await axios.post(`${API}/signin`, credentials);
+  return response.data as User;
+}
 
-// sign in with username and password
-export const signin = async (credentials: any) => {
-  const { data } = await axiosWithCredentials.post(
-    `${USERS_API}/signin`,
-    credentials
-  );
-  return data;
-};
+// create a new user account
+export async function signup(user: Partial<User>): Promise<User> {
+  const response = await axios.post(`${API}/signup`, user);
+  return response.data as User;
+}
 
 // get current logged in user from session
-export const profile = async () => {
-  const { data } = await axiosWithCredentials.get(
-    `${USERS_API}/profile`
-  );
-  return data;
-};
+export async function profile(): Promise<User> {
+  const response = await axios.get(`${API}/profile`);
+  return response.data as User;
+}
 
-// update current user profile
-export const updateUser = async (userId: string, updates: any) => {
-  const { data } = await axiosWithCredentials.put(
-    `${USERS_API}/${userId}`,
-    updates
-  );
-  return data;
-};
+// update current user by id
+export async function updateUser(
+  userId: string,
+  updates: Partial<User>
+): Promise<User> {
+  const response = await axios.put(`${API}/${userId}`, updates);
+  return response.data as User;
+}
 
 // sign out current user
-export const signout = async () => {
-  const { data } = await axiosWithCredentials.post(
-    `${USERS_API}/signout`
-  );
-  return data;
-};
-
+export async function signout(): Promise<void> {
+  await axios.post(`${API}/signout`);
+}
 // export all client functions as an object
 // 	uses NEXT_PUBLIC_HTTP_SERVER
 //	uses /api/users/... routes
