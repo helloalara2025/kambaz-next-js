@@ -7,8 +7,10 @@
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { Row, Col, Accordion, ListGroup, Button } from 'react-bootstrap';
-import * as db from '../../../Database';
+import axios from 'axios';
+import { BASE_API } from '../../client';
 
 import CourseStatus from './Status';
 
@@ -34,13 +36,28 @@ export default function CourseHome() {
     { href: '#', label: 'Home', current: true },
   ];
 
-  const courseModules: ModuleLite[] = (db.modules as ModuleLite[] ?? [])
-    .filter((m) => m.course === courseId)
-    .slice(0, 4);
+  const [courseModules, setCourseModules] = useState<ModuleLite[]>([]);
+  const [courseAssignments, setCourseAssignments] = useState<AssignmentLite[]>([]);
 
-  const courseAssignments: AssignmentLite[] = (db.assignments as AssignmentLite[] ?? [])
-    .filter((a) => a.course === courseId)
-    .slice(0, 5);
+  // load modules and assignments for this course from the api
+  useEffect(() => {
+    if (!courseId) return;
+
+    const load = async () => {
+      try {
+        const [modulesRes, assignmentsRes] = await Promise.all([
+          axios.get<ModuleLite[]>(`${BASE_API}/courses/${courseId}/modules`),
+          axios.get<AssignmentLite[]>(`${BASE_API}/courses/${courseId}/assignments`),
+        ]);
+        setCourseModules(modulesRes.data ?? []);
+        setCourseAssignments(assignmentsRes.data ?? []);
+      } catch (e) {
+        console.error('failed to load course home data', e);
+      }
+    };
+
+    void load();
+  }, [courseId]);
 
   /** Collapse all open accordion sections */
   const collapseAll = () => {

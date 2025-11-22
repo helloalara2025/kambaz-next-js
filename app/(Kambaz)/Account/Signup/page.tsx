@@ -1,89 +1,120 @@
 "use client";
 
-/**
- * Signup Page
- */
-
-import Link from "next/link";
-import { redirect } from "next/navigation";
-import { useDispatch } from "react-redux";
 import { useState } from "react";
-import { FormControl, Button } from "react-bootstrap";
-import { setCurrentUser } from "../Reducer";
-import * as client from "../client";
+import { useDispatch } from "react-redux";
+import { useRouter } from "next/navigation";
 
-type SignupUser = {
-  username?: string;
-  password?: string;
-};
+import * as client from "../client";          // calls to account api
+import { setCurrentUser } from "../../Account/reducer";  // save user in account slice
 
-export default function Signup() {
-  const [user, setUser] = useState<SignupUser>({});
+const SignupPage = () => {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [first, setFirst] = useState("");
+  const [last, setLast] = useState("");
+  const [email, setEmail] = useState("");
+
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
   const dispatch = useDispatch();
+  const router = useRouter();
 
-  const signup = async () => {
-    const currentUser = await client.signup(user);
-    dispatch(setCurrentUser(currentUser));
-    redirect("/Account/Profile");
+  // handle sign up click
+  const handleSignup = async () => {
+    setError(null);
+    setPending(true);
+
+    try {
+      const newUser = await client.signup({
+        username,
+        password,
+        first,
+        last,
+        email,
+      });
+
+      // store new user in redux
+      dispatch(setCurrentUser(newUser));
+
+      // go to profile after sign up
+      router.push("/Account/Profile");
+    } catch (e: any) {
+      setError(e?.response?.data?.message || "unable to sign up");
+    } finally {
+      setPending(false);
+    }
   };
 
   return (
-    <main
-      id="wd-signup-screen"
-      className="wd-signup-screen d-flex justify-content-center align-items-center p-4"
-    >
-      <div className="w-100" style={{ maxWidth: 440 }}>
-        <h2 className="text-center m-0">Sign up for Kambaz</h2>
-        <p className="text-center mt-1 mb-3 text-secondary">
-          Create your account to access courses and dashboards.
-        </p>
+    <div className="container mt-4">
+      <h2 className="mb-3">Sign up</h2>
 
-        {/* Username */}
-        <label htmlFor="wd-su-username" className="fw-semibold">
-          Username
-        </label>
-        <FormControl
-          id="wd-su-username"
-          className="wd-username mb-2"
-          placeholder="username"
-          value={user.username ?? ""}
-          onChange={(e) =>
-            setUser({ ...user, username: e.target.value })
-          }
+      <div className="mb-3">
+        <label className="form-label">username</label>
+        <input
+          className="form-control"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
         />
-
-        {/* Password */}
-        <label htmlFor="wd-su-password" className="fw-semibold">
-          Password
-        </label>
-        <FormControl
-          id="wd-su-password"
-          className="wd-password mb-3"
-          type="password"
-          placeholder="password"
-          value={user.password ?? ""}
-          onChange={(e) =>
-            setUser({ ...user, password: e.target.value })
-          }
-        />
-
-        <div className="d-grid gap-2">
-          <Button
-            id="wd-su-submit"
-            className="wd-signup-btn"
-            variant="primary"
-            onClick={signup}
-          >
-            Signup
-          </Button>
-        </div>
-
-        <div className="mt-2">
-          <Link href="/Account/Signin" className="wd-signin-link">
-            Sign in
-          </Link>
-        </div>
       </div>
-    </main>
+
+      <div className="mb-3">
+        <label className="form-label">password</label>
+        <input
+          type="password"
+          className="form-control"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+      </div>
+
+      <div className="mb-3">
+        <label className="form-label">first name</label>
+        <input
+          className="form-control"
+          value={first}
+          onChange={(e) => setFirst(e.target.value)}
+        />
+      </div>
+
+      <div className="mb-3">
+        <label className="form-label">last name</label>
+        <input
+          className="form-control"
+          value={last}
+          onChange={(e) => setLast(e.target.value)}
+        />
+      </div>
+
+      <div className="mb-3">
+        <label className="form-label">email</label>
+        <input
+          type="email"
+          className="form-control"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+      </div>
+
+      {error && <div className="alert alert-danger">{error}</div>}
+
+      <button
+        id="wd-signup-btn"
+        className="btn btn-primary"
+        onClick={handleSignup}
+        disabled={pending}
+      >
+        {pending ? "creating account..." : "sign up"}
+      </button>
+    </div>
   );
-}
+};
+
+export default SignupPage;
+
+//Notes:	•	Collects username, password, first, last, email
+//	•	Calls client.signup to create account
+//	•	Stores new user in redux via setCurrentUser
+//	•	Navigates to /Account/Profile on success
+//	•	Shows error message on failure

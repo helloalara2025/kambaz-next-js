@@ -1,140 +1,92 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { Inter } from 'next/font/google';
-import Link from 'next/link';
-import { useDispatch } from 'react-redux';
-// small in-file client helper to replace missing ../../client module
-type AuthUser = {
-  id: string;
-  username: string;
-  email?: string;
-  token?: string;
-};
+import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { useRouter } from "next/navigation";
+import * as client from "../client";
+import { setCurrentUser } from "../../Account/reducer";
 
-const client = {
-  signin: async (credentials: { username: string; password: string }): Promise<AuthUser | null> => {
-    try {
-      const res = await fetch('/api/auth/signin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(credentials),
-      });
-      if (!res.ok) return null;
-      const data = await res.json();
-      return data as AuthUser;
-    } catch (err) {
-      console.error('signin error', err);
-      return null;
-    }
-  },
-};
+export default function Signin() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
-/****
- * @file Signin Page
- * sign in screen for kambaz users
- */
-
-const inter = Inter({ subsets: ['latin'] });
-
-export default function SigninPage() {
-  const router = useRouter();
   const dispatch = useDispatch();
+  const router = useRouter();
 
-  // single credentials object for username and password
-  const [credentials, setCredentials] = useState<{ username: string; password: string }>({
-    username: '',
-    password: '',
-  });
+  const handleSignin = async () => {
+    try {
+      // talk to server
+      const user = await client.signin({ username, password });
 
-  const signin = async () => {
-    const user = await client.signin(credentials);
-    if (!user) {
-      return;
+      // store user in redux
+      dispatch(setCurrentUser(user));
+
+      setError(null);
+
+      // go to profile after login
+      router.push("/Account/Profile");
+    } catch (e: any) {
+      // show server message if there is one
+      const msg =
+        e?.response?.data?.message ||
+        "Unable to sign in. Check your username and password.";
+      setError(msg);
     }
+  };
 
-    // basic redux action – reducer should handle this type
-    dispatch({ type: 'SET_CURRENT_USER', payload: user });
-    router.push('/Dashboard');
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSignin();
   };
 
   return (
-    <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
-      <main
-        className={`d-flex justify-content-center align-items-center ${inter.className}`}
-        style={{ minWidth: '320px', maxWidth: '400px', width: '100%' }}
-      >
-        {/* card container for the sign in form */}
-        <div className="card p-4 w-100">
-          <h2 className="mb-4 text-center">Sign In</h2>
+    <div className="d-flex justify-content-center align-items-start mt-5">
+      <div className="w-25">
+        <h1 className="mb-3">Sign In</h1>
 
-          {/* sign in form */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              signin();
-            }}
-          >
-            {/* username input */}
-            <div className="mb-3">
-              <label htmlFor="username" className="form-label">
-                Username
-              </label>
-              <input
-                type="text"
-                id="username"
-                className="form-control"
-                value={credentials.username}
-                onChange={(e) =>
-                  setCredentials({ ...credentials, username: e.target.value })
-                }
-                required
-              />
-              <div className="form-text">enter your kambaz username</div>
-            </div>
-
-            {/* password input */}
-            <div className="mb-3">
-              <label htmlFor="password" className="form-label">
-                Password
-              </label>
-              <input
-                type="password"
-                id="password"
-                className="form-control"
-                value={credentials.password}
-                onChange={(e) =>
-                  setCredentials({ ...credentials, password: e.target.value })
-                }
-                required
-              />
-              <div className="form-text">your password is kept secure</div>
-            </div>
-
-            {/* submit button */}
-            <button type="submit" className="btn btn-primary w-100">
-              Sign In
-            </button>
-          </form>
-
-          <p className="text-center mt-3">
-            don’t have an account?{' '}
-            <Link
-              href="/Account/Signup"
-              className="text-decoration-none text-primary fw-semibold"
-            >
-              sign up here
-            </Link>
-          </p>
-
-          <div className="d-flex justify-content-center mt-3">
-            <Link href="/Labs" className="btn btn-outline-secondary px-4">
-              go to labs
-            </Link>
+        <form onSubmit={handleSubmit} className="w-50">
+          <div className="mb-3">
+            <label className="form-label">Username</label>
+            <input
+              className="form-control"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              id="wd-username"
+            />
           </div>
-        </div>
-      </main>
+
+          <div className="mb-3">
+            <label className="form-label">Password</label>
+            <input
+              type="password"
+              className="form-control"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              id="wd-password"
+            />
+          </div>
+
+          {error && (
+            <div className="alert alert-danger py-2" role="alert">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            className="btn btn-primary"
+            id="wd-signin-btn"
+          >
+            Sign In
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
+///// Notes:	•	
+// Uses a local credentials state to hold username and password
+//	•	goal: stop using front end local store databaase that is hard coded and instead call backend api 
+// On submit, calls client.signin and if successful, dispatches SET_CURRENT_USER with the returned user and navigates to /Dashboard
+// </file>

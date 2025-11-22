@@ -1,37 +1,37 @@
-'use client'
+"use client";
 
-// course gate
-// allow by default; require enrollment only when list is set
+import { ReactNode, useEffect } from "react";
+import { useSelector } from "react-redux";
+import { useParams, useRouter } from "next/navigation";
 
-import { useParams, useRouter } from 'next/navigation'
-import { useSelector } from 'react-redux'
-import { selectEnrolled } from '../../Enrollments/reducer'
-import { useEffect } from 'react'
-import Link from 'next/link'
+import type { RootState } from "@/app/(Kambaz)/store";
 
-export default function CourseGate({ children }: { children: React.ReactNode }) {
-  const { cid } = useParams() as { cid: string }
-  const router = useRouter()
-  const enrolled = (useSelector(selectEnrolled) as string[]) ?? []
+type Props = {
+  children: ReactNode;
+};
 
-  // if no enrollments tracked yet, let it pass
-  const ok = enrolled.length === 0 || enrolled.includes(cid)
+const CourseLayout = ({ children }: Props) => {
+  const router = useRouter();
+  const { cid } = useParams<{ cid: string }>();
+
+  const { courseIds: enrolledCourseIds } = useSelector(
+    (state: RootState) => state.enrollments
+  );
+
+  const isEnrolled = cid && enrolledCourseIds.includes(cid);
 
   useEffect(() => {
-    if (!ok) router.replace('/Dashboard')
-  }, [ok, router])
+    if (!cid) return;
+    if (!isEnrolled) {
+      router.replace("/Dashboard");
+    }
+  }, [cid, isEnrolled, router]);
 
-  if (!ok) return null
-  return (
-    <div className="flex gap-4 p-3">
-      <aside className="w-56 shrink-0">
-        <ul className="space-y-2">
-          <li><Link href={`/Courses/${cid}/Home`}>home</Link></li>
-          <li><Link href={`/Courses/${cid}/Modules`}>modules</Link></li>
-          <li><Link href={`/Courses/${cid}/Assignments`}>assignments</Link></li>
-        </ul>
-      </aside>
-      <main className="flex-1">{children}</main>
-    </div>
-  )
-}
+  if (!isEnrolled) {
+    return null;
+  }
+
+  return <>{children}</>;
+};
+
+export default CourseLayout;

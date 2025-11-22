@@ -1,46 +1,44 @@
-// simple enrollments slice
-// stores course ids a user is enrolled in
-
-import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 type EnrollmentsState = {
-  courseIds: string[]
-}
+  courseIds: string[];
+};
 
 const initialState: EnrollmentsState = {
   courseIds: [],
-}
+};
 
 const enrollmentsSlice = createSlice({
-  name: 'enrollments',
+  name: "enrollments",
   initialState,
   reducers: {
-    enroll(state, { payload }: PayloadAction<string>) {
-      if (!state.courseIds.includes(payload)) state.courseIds.push(payload)
+    // replace all enrollments
+    setEnrollments: (state, action: PayloadAction<string[]>) => {
+      state.courseIds = action.payload;
     },
-    unenroll(state, { payload }: PayloadAction<string>) {
-      state.courseIds = state.courseIds.filter(id => id !== payload)
+    // add one course id
+    enrollInCourse: (state, action: PayloadAction<string>) => {
+      if (!state.courseIds.includes(action.payload)) {
+        state.courseIds.push(action.payload);
+      }
     },
-    toggleEnroll(state, { payload }: PayloadAction<string>) {
-      const i = state.courseIds.indexOf(payload)
-      if (i === -1) state.courseIds.push(payload)
-      else state.courseIds.splice(i, 1)
+    // remove one course id
+    unenrollFromCourse: (state, action: PayloadAction<string>) => {
+      state.courseIds = state.courseIds.filter(
+        (id) => id !== action.payload
+      );
     },
   },
-})
+});
 
-export const { enroll, unenroll, toggleEnroll } = enrollmentsSlice.actions
+export const {
+  setEnrollments,
+  enrollInCourse,
+  unenrollFromCourse,
+} = enrollmentsSlice.actions;
 
-type RootState = {
-  enrollments: EnrollmentsState
-}
+export default enrollmentsSlice.reducer;
 
-export const selectEnrolled = (s: RootState): string[] =>
-  s.enrollments?.courseIds ?? []
-
-export const isCourseEnrolled =
-  (courseId: string) =>
-  (s: RootState): boolean =>
-    (s.enrollments?.courseIds ?? []).includes(courseId)
-
-export default enrollmentsSlice.reducer
+//Notes:	•	manages list of enrolled course IDs in redux
+//	•	exposes setEnrollments, enrollInCourse, unenrollFromCourse actions   
+//Goal: hold all enrolled course IDs in redux and expose setEnrollments, enrollInCourse, unenrollFromCourse

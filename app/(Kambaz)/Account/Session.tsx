@@ -1,28 +1,54 @@
-import * as client from "./client";
-import { useEffect, useState, ReactNode } from "react";
+"use client";
+
+import { ReactNode, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { setCurrentUser } from "./Reducer";
-export default function Session({ children }: { children: ReactNode }) {
-  const [pending, setPending] = useState(true);
+
+import * as client from "./client";          // small api helpers
+import { setCurrentUser } from "../Account/reducer";
+
+type Props = {
+  children: ReactNode;
+};
+
+const Session = ({ children }: Props) => {
   const dispatch = useDispatch();
-  const fetchProfile = async () => {
-    try {
-      const currentUser = await client.profile();
-      dispatch(setCurrentUser(currentUser));
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        console.error(err);
-      } else {
-        console.error(String(err));
-      }
-    }
-    setPending(false);
-  };
+  const [pending, setPending] = useState(true);
+
+  // load current user from server on first render
   useEffect(() => {
-    fetchProfile();
-  }, []);
-  if (!pending) {
-    return children;
+    const loadProfile = async () => {
+      try {
+        const user = await client.profile();
+        dispatch(setCurrentUser(user));
+      } catch (e) {
+        // no logged in user is fine
+        dispatch(setCurrentUser(null));
+      } finally {
+        setPending(false);
+      }
+    };
+
+    loadProfile();
+  }, [dispatch]);
+
+  // tiny loading state so layout does not flicker
+  if (pending) {
+    return (
+      <div className="container mt-4">
+        <span>loading account…</span>
+      </div>
+    );
   }
-  return null;
-}
+
+  return <>{children}</>;
+};
+
+export default Session;
+
+///// Notes:	•	On mount, calls client.profile to get current user from session
+//	•	Dispatches setCurrentUser to store user in redux
+//	•	Shows children once done checking session 
+// 	•	calls /api/users/profile on mount
+//	•	drops the result into Redux via setCurrentUser
+//	•	clears the user if the call fails
+//	•	waits until the check is done before rendering children

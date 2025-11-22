@@ -1,19 +1,16 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import "bootstrap/dist/css/bootstrap.min.css";
+// app/layout.tsx
+import type { ReactNode } from "react";
+import "./globals.css"; // keep whatever global styles you use
 
-export const metadata: Metadata = {
-  title: "Kambaz App",
+type RootLayoutProps = {
+  children: ReactNode;
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+// root layout wraps the whole app
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
-      <body className="bg-light">{children}</body>
+      <body>{children}</body>
     </html>
   );
 }

@@ -1,35 +1,59 @@
 import axios from "axios";
 
-const USERS_API = process.env.USERS_API ?? "http://localhost:4000";
+export const HTTP_SERVER = process.env.NEXT_PUBLIC_HTTP_SERVER;
 
-// axios instance configured to send cookies for session-based auth
-export const axiosWithCredentials = axios.create({
+// axios instance that sends cookies for session
+const axiosWithCredentials = axios.create({
   withCredentials: true,
 });
 
-export type SignupUser = Record<string, unknown>;
+export const USERS_API = `${HTTP_SERVER}/api/users`;
 
-export const signup = async (user: SignupUser) => {
-  const response = await axiosWithCredentials.post(`${USERS_API}/signup`, user);
-  return response.data;
-};
-
-export const updateUser = async (user: SignupUser & { _id: string }) => {
-  const response = await axiosWithCredentials.put(
-    `${USERS_API}/${user._id}`,
+// create a new user and sign them in
+export const signup = async (user: any) => {
+  const { data } = await axiosWithCredentials.post(
+    `${USERS_API}/signup`,
     user
   );
-  return response.data;
+  return data;
 };
 
+// sign in with username and password
+export const signin = async (credentials: any) => {
+  const { data } = await axiosWithCredentials.post(
+    `${USERS_API}/signin`,
+    credentials
+  );
+  return data;
+};
+
+// get current logged in user from session
 export const profile = async () => {
-  const response = await axiosWithCredentials.post(`${USERS_API}/{profile}`);
-  return response.data;
+  const { data } = await axiosWithCredentials.get(
+    `${USERS_API}/profile`
+  );
+  return data;
 };
 
+// update current user profile
+export const updateUser = async (userId: string, updates: any) => {
+  const { data } = await axiosWithCredentials.put(
+    `${USERS_API}/${userId}`,
+    updates
+  );
+  return data;
+};
+
+// sign out current user
 export const signout = async () => {
-  const response = await axiosWithCredentials.post(`${USERS_API}/signout`);
-  return response.data;
+  const { data } = await axiosWithCredentials.post(
+    `${USERS_API}/signout`
+  );
+  return data;
 };
 
-
+// export all client functions as an object
+// 	uses NEXT_PUBLIC_HTTP_SERVER
+//	uses /api/users/... routes
+//	sends cookies with withCredentials: true
+//	exposes signup, signin, profile, updateUser, signout for your Account screens and Session provider

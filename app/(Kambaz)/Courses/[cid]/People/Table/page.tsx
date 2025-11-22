@@ -8,7 +8,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import * as db from '../../../../Database';
+import * as db from '../../../../../../kambaz-node-server-app/Kambaz/Database';
 import { Table, Breadcrumb, Card } from 'react-bootstrap';
 import Link from 'next/link';
 
@@ -31,7 +31,7 @@ export type Person = {
 export default function PeopleTable() {
   const { cid } = useParams<{ cid: string }>();
 
-  const users = (db.users as Person[]) ?? [];
+  const users = (db as { users?: Person[] }).users ?? [];
   const enrollments = (db as { enrollments?: Enrollment[] }).enrollments ?? [];
 
   // if enrollments exist for this course, show those.

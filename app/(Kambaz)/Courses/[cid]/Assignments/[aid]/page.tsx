@@ -1,145 +1,186 @@
-'use client'
-/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 
-// assignment editor
-// simple form used for both new and edit
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useParams, useRouter } from "next/navigation";
+import { Form, Button } from "react-bootstrap";
 
-import { useParams, useRouter } from 'next/navigation'
-import { useDispatch, useSelector } from 'react-redux'
-import { useMemo, useState } from 'react'
+import * as client from "../client";
 import {
-  addNewAssignment,
-  updateAssignment,
-  selectAssignments,
-} from '../../../reducer'
+  addAssignment,
+  updateAssignment as updateAssignmentInState,
+  setAssignments,
+} from "../reducer"
+import type { RootState } from "@/app/(Kambaz)/store";
 
-export default function AssignmentEditor() {
-  const { cid, aid } = useParams() as { cid: string; aid: string }
-  const router = useRouter()
-  const dispatch = useDispatch()
+const emptyAssignment = {
+  title: "",
+  description: "",
+  points: 100,
+  dueDate: "",
+  availableFrom: "",
+  availableUntil: "",
+};
 
-  const all = useSelector((s: any) => selectAssignments(s)) || []
-  const current = useMemo(
-    () => all.find((a: any) => a._id === aid),
-    [all, aid]
-  )
-  const isNew = aid === 'new' || aid == null
+const AssignmentEditorPage = () => {
+  const dispatch = useDispatch();
+  const router = useRouter();
+  const { cid, aid } = useParams<{ cid: string; aid: string }>();
 
-  type FormState = {
-    name: string
-    description: string
-    points: string | number
-    dueDate: string
-    availableFrom: string
-    availableUntil: string
-  }
+  const assignments = useSelector((state: any) => state.assignments?.assignments ?? []);
 
-  const [form, setForm] = useState<FormState>({
-    name: current?.name ?? '',
-    description: current?.description ?? '',
-    points: current?.points ?? '',
-    dueDate: current?.dueDate ?? '',
-    availableFrom: current?.availableFrom ?? '',
-    availableUntil: current?.availableUntil ?? '',
-  })
+  const [assignment, setAssignment] = useState<any>(emptyAssignment);
+  const [pending, setPending] = useState(false);
 
-  const update = (k: keyof FormState, v: FormState[keyof FormState]) =>
-    setForm(s => ({ ...s, [k]: v } as FormState))
+  const isNew = aid === "new";
 
-  const save = () => {
-    const payload = {
-      name: form.name?.trim() || 'untitled assignment',
-      description: form.description || '',
-      points: form.points === '' ? undefined : Number(form.points),
-      dueDate: form.dueDate || undefined,
-      availableFrom: form.availableFrom || undefined,
-      availableUntil: form.availableUntil || undefined,
-      course: cid,
-    } as any
+  // load assignments if needed and pick current one
+  useEffect(() => {
+    const init = async () => {
+      if (!cid) return;
 
-    if (isNew) {
-      dispatch(addNewAssignment(payload))
-    } else if (current) {
-      dispatch(updateAssignment({ ...current, ...payload, _id: current._id }))
+      // if we already have them in state
+      if (assignments.length > 0 && !isNew) {
+        const found = assignments.find((a: { _id: string; }) => a._id === aid);
+        if (found) {
+          setAssignment(found);
+          return;
+        }
+      }
+
+      // otherwise refetch from server
+      const data = await client.findAssignmentsForCourse(cid);
+      dispatch(setAssignments(data));
+
+      if (!isNew) {
+        const found = data.find((a: any) => a._id === aid);
+        if (found) {
+          setAssignment(found);
+        }
+      }
+    };
+
+    init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cid, aid, isNew]);
+
+  const onChange = (field: string, value: any) => {
+    setAssignment({ ...assignment, [field]: value });
+  };
+
+  const onCancel = () => {
+    if (!cid) return;
+    router.push(`/Courses/${cid}/Assignments`);
+  };
+
+  const onSave = async () => {
+    if (!cid) return;
+
+    setPending(true);
+
+    try {
+      if (isNew) {
+        // create
+        const created = await client.createAssignmentForCourse(cid, {
+          ...assignment,
+          course: cid,
+        });
+        dispatch(addAssignment(created));
+      } else {
+        // update
+        const updated = await client.updateAssignment(assignment);
+        dispatch(updateAssignmentInState(updated));
+      }
+
+      router.push(`/Courses/${cid}/Assignments`);
+    } finally {
+      setPending(false);
     }
-
-    router.push(`/Kambaz/Courses/${cid}/Assignments`)
-  }
-
-  const cancel = () => router.push(`/Kambaz/Courses/${cid}/Assignments`)
+  };
 
   return (
-    <section className="p-3 max-w-xl space-y-4">
-      <h4>{isNew ? 'new assignment' : 'edit assignment'}</h4>
+    <div className="container mt-4">
+      <h3 className="mb-3">
+        {isNew ? "new assignment" : "edit assignment"}
+      </h3>
 
-      <form
-        onSubmit={e => {
-          e.preventDefault()
-          save()
-        }}
-        className="flex flex-col gap-3"
-      >
-        <label className="flex flex-col">
-          <span>name</span>
-          <input
-            value={form.name}
-            onChange={e => update('name', e.target.value)}
-            required
+      <Form>
+        <Form.Group className="mb-3">
+          <Form.Label>name</Form.Label>
+          <Form.Control
+            value={assignment.title ?? ""}
+            onChange={(e) => onChange("title", e.target.value)}
           />
-        </label>
+        </Form.Group>
 
-        <label className="flex flex-col">
-          <span>description</span>
-          <textarea
-            value={form.description}
-            onChange={e => update('description', e.target.value)}
+        <Form.Group className="mb-3">
+          <Form.Label>description</Form.Label>
+          <Form.Control
+            as="textarea"
+            rows={3}
+            value={assignment.description ?? ""}
+            onChange={(e) => onChange("description", e.target.value)}
           />
-        </label>
+        </Form.Group>
 
-        <label className="flex flex-col">
-          <span>points</span>
-          <input
+        <Form.Group className="mb-3">
+          <Form.Label>points</Form.Label>
+          <Form.Control
             type="number"
-            value={form.points}
-            onChange={e => update('points', e.target.value)}
-            min={0}
+            value={assignment.points ?? 0}
+            onChange={(e) => onChange("points", Number(e.target.value))}
           />
-        </label>
+        </Form.Group>
 
-        <label className="flex flex-col">
-          <span>due date</span>
-          <input
+        <Form.Group className="mb-3">
+          <Form.Label>due date</Form.Label>
+          <Form.Control
             type="date"
-            value={form.dueDate}
-            onChange={e => update('dueDate', e.target.value)}
+            value={assignment.dueDate ?? ""}
+            onChange={(e) => onChange("dueDate", e.target.value)}
           />
-        </label>
+        </Form.Group>
 
-        <label className="flex flex-col">
-          <span>available from</span>
-          <input
+        <Form.Group className="mb-3">
+          <Form.Label>available from</Form.Label>
+          <Form.Control
             type="date"
-            value={form.availableFrom}
-            onChange={e => update('availableFrom', e.target.value)}
+            value={assignment.availableFrom ?? ""}
+            onChange={(e) => onChange("availableFrom", e.target.value)}
           />
-        </label>
+        </Form.Group>
 
-        <label className="flex flex-col">
-          <span>available until</span>
-          <input
+        <Form.Group className="mb-3">
+          <Form.Label>available until</Form.Label>
+          <Form.Control
             type="date"
-            value={form.availableUntil}
-            onChange={e => update('availableUntil', e.target.value)}
+            value={assignment.availableUntil ?? ""}
+            onChange={(e) => onChange("availableUntil", e.target.value)}
           />
-        </label>
+        </Form.Group>
 
-        <div className="flex gap-2">
-          <button type="submit">save</button>
-          <button type="button" onClick={cancel}>
+        <div className="d-flex gap-2">
+          <Button
+            variant="secondary"
+            type="button"
+            onClick={onCancel}
+            disabled={pending}
+          >
             cancel
-          </button>
+          </Button>
+
+          <Button
+            variant="primary"
+            type="button"
+            onClick={onSave}
+            disabled={pending}
+          >
+            {pending ? "saving…" : "save"}
+          </Button>
         </div>
-      </form>
-    </section>
-  )
-}
+      </Form>
+    </div>
+  );
+};
+
+export default AssignmentEditorPage;

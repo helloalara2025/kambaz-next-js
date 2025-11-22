@@ -1,153 +1,164 @@
-'use client';
+"use client";
 
-import { setModules, addModule, editModule, updateModule, deleteModule }
-  from "./reducer";
-import { useSelector, useDispatch } from "react-redux";
-import { useState, useEffect } from 'react';
-import ModulesControls from './ModulesControls';
-import ModuleControlButtons from './ModuleControlButtons';
-import { FormControl } from 'react-bootstrap';
-import { BsGripVertical } from 'react-icons/bs';
+import { useEffect, useState, KeyboardEvent } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useParams } from "next/navigation";
+import { ListGroup, Button, FormControl } from "react-bootstrap";
 
-/*
-  modules index for a course
-  renders module cards for the given cid
-*/
+import type { RootState } from "@/app/(Kambaz)/store";
+import {
+  setModules,
+  addModule,
+  editModule,
+  updateModuleLocal,
+  updateModule as saveModule,
+  deleteModule as removeModule,
+} from "./reducer";
+import * as client from "./client";
 
-import { useParams } from 'next/navigation';
-import * as db from '../../../Database';
-import * as client from '../../client';
-
-// data shapes from our tiny JSON db
-export type Lesson = { _id: string; name: string; description?: string; module: string };
-export type ModuleT = { _id: string; name: string; description?: string; course: string; lessons: Lesson[]; editing?: boolean };
-export type Course = { _id: string; name: string; description?: string };
-
-export default function ModulesPage() {
+const ModulesPage = () => {
   const { cid } = useParams<{ cid: string }>();
 
-  // redux: read modules from store
-  const { modules } = useSelector((state: { modulesReducer: { modules: ModuleT[] } }) => state.modulesReducer);
   const dispatch = useDispatch();
-  // input: new module name
-  const [moduleName, setModuleName] = useState('');
+  const { modules } = useSelector(
+    (state: any) => state.modulesReducer
+  );
 
+  const [newModuleName, setNewModuleName] = useState("");
+
+  // load modules from server for this course
   const fetchModules = async () => {
-    try {
-      const serverModules = await client.findModulesForCourse(cid as string);
-      dispatch(setModules(serverModules));
-    } catch (e) {
-      console.error(e);
-    }
+    if (!cid) return;
+    const data = await client.findModulesForCourse(cid);
+    dispatch(setModules(data));
   };
 
   useEffect(() => {
     fetchModules();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cid]);
 
-  const course = ((db.courses as Course[]) ?? []).find((c) => c._id === cid);
+  // create new module
+  const onCreateModuleForCourse = async () => {
+    if (!cid || !newModuleName.trim()) return;
 
-  const onRemoveModule = async (moduleId: string) => {
-    try {
-      await client.deleteModule(moduleId);
-      dispatch(
-        setModules(modules.filter((m: ModuleT) => m._id !== moduleId))
-      );
-    } catch (e) {
-      console.error(e);
-    }
+    const body = { name: newModuleName.trim(), course: cid };
+    const createdModule = await client.createModuleForCourse(cid, body);
+    dispatch(addModule(createdModule));
+    setNewModuleName("");
   };
 
-  const onUpdateModule = async (module: ModuleT) => {
-    try {
-      const updated = await client.updateModule({
+  // delete module
+  const onRemoveModule = async (moduleId: string) => {
+    await client.deleteModule(moduleId);
+    dispatch(removeModule(moduleId));
+  };
+
+  // save updated module name to server
+  const onSaveModule = async (module: any) => {
+    const updated = await client.updateModule({
+      ...module,
+      editing: false,
+    });
+    dispatch(saveModule(updated));
+  };
+
+  // when typing in module name input
+  const onNameChange = (module: any, value: string) => {
+    dispatch(
+      updateModuleLocal({
         ...module,
-        title: module.name,
-        content: module.description,
-      });
-      const newModules = modules.map((m: ModuleT) =>
-        m._id === updated._id ? updated : m
-      );
-      dispatch(setModules(newModules));
-    } catch (e) {
-      console.error(e);
+        name: value,
+      })
+    );
+  };
+
+  const handleNameKey = (module: any, e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      onSaveModule(module);
     }
   };
 
   return (
-    <div id="wd-modules" className="container-fluid">
-      <h1 className="mb-1">{course?.name ?? 'Course'}</h1>
-      <h2 className="h5 text-muted">Modules <span className="badge text-bg-secondary ms-2">{modules.length}</span></h2>
-      <hr />
+    <div className="container mt-4">
+      <h3 className="mb-3">modules</h3>
 
-      <ModulesControls
-        setModuleName={setModuleName}
-        moduleName={moduleName}
-        addModule={handleAddModule}
-      />
-
-      <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-        {modules.map((module: ModuleT) => (
-          <div key={module._id} className="col">
-            <div className="card h-100 shadow-sm">
-              <div className="card-body d-flex flex-column">
-                <ModuleControlButtons
-                  moduleId={module._id}
-                  deleteModule={(moduleId) => onRemoveModule(moduleId)}
-                  editModule={(moduleId) => dispatch(editModule(moduleId))}
-                />
-                <div className="wd-title p-3 ps-2 bg-secondary-subtle">
-                  <BsGripVertical className="me-2 fs-3" />
-                  {!module.editing && module.name}
-                  {module.editing && (
-                    <FormControl
-                      className="w-50 d-inline-block"
-                      value={module.name}
-                      onChange={(e) =>
-                        dispatch(updateModule({ ...module, name: e.target.value }))
-                      }
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          void onUpdateModule({ ...module, editing: false });
-                        }
-                      }}
-                    />
-                  )}
-                </div>
-                <p className="card-text text-muted small mb-3">{module.description ?? '—'}</p>
-                {module.lessons && module.lessons.length > 0 && (
-                  <ul className="list-group list-group-flush small mb-3">
-                    {module.lessons.slice(0, 4).map((l) => (
-                      <li key={l._id} className="list-group-item px-0 py-1 text-truncate" title={l.name}>{l.name}</li>
-                    ))}
-                  </ul>
-                )}
-                <div className="mt-auto text-muted small">Lessons: {module.lessons?.length ?? 0}</div>
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {modules.length === 0 && (
-          <div className="col-12">
-            <div className="alert alert-warning mb-0">No modules found for this course.</div>
-          </div>
-        )}
+      {/* controls */}
+      <div className="d-flex mb-3 gap-2">
+        <FormControl
+          placeholder="new module name"
+          value={newModuleName}
+          onChange={(e) => setNewModuleName(e.target.value)}
+        />
+        <Button onClick={onCreateModuleForCourse}>add module</Button>
       </div>
+
+      {/* list */}
+      <ListGroup id="wd-modules" className="rounded-0">
+        {modules.map((module: any) => (
+          <ListGroup.Item
+            key={module._id}
+            className="d-flex justify-content-between align-items-center"
+          >
+            <div className="flex-grow-1">
+              {!module.editing && (
+                <span
+                  onClick={() =>
+                    dispatch(editModule(module._id as string))
+                  }
+                  style={{ cursor: "pointer" }}
+                >
+                  {module.name}
+                </span>
+              )}
+
+              {module.editing && (
+                <FormControl
+                  className="w-75 d-inline-block"
+                  value={module.name ?? ""}
+                  onChange={(e) =>
+                    onNameChange(module, e.target.value)
+                  }
+                  onKeyDown={(e) =>
+                    handleNameKey(module, e as any)
+                  }
+                  autoFocus
+                />
+              )}
+            </div>
+
+            <div className="btn-group btn-group-sm">
+              {module.editing && (
+                <Button
+                  variant="success"
+                  onClick={() => onSaveModule(module)}
+                >
+                  save
+                </Button>
+              )}
+
+              <Button
+                variant="outline-danger"
+                onClick={() =>
+                  onRemoveModule(module._id as string)
+                }
+              >
+                delete
+              </Button>
+            </div>
+          </ListGroup.Item>
+        ))}
+      </ListGroup>
     </div>
   );
+};
 
-  // add new module via reducer
-  function handleAddModule() {
-    const newModule: ModuleT = {
-      _id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-      name: moduleName,
-      course: cid as string,
-      lessons: [],
-      editing: false,
-    };
+export default ModulesPage;
 
-    dispatch(addModule(newModule));
-    setModuleName('');
-  }
-}
+//Notes:	•	uses client.ts for server calls
+//	•	uses reducer.ts for redux state
+//	•	fetches modules for course on mount
+//	•	allows creating, updating (inline), deleting modules
+//	•	loads modules for the current course from the server on mount
+//	•	lets you create, rename, and delete modules
+//	•	no fake Database imports, all REST

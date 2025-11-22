@@ -1,51 +1,37 @@
 import axios from "axios";
+const BASE_API = process.env.NEXT_PUBLIC_BASE_API || "http://localhost:4000";
 
-const HTTP_SERVER =
-  process.env.NEXT_PUBLIC_HTTP_SERVER ?? "http://localhost:4000";
-
-const COURSES_API = `${HTTP_SERVER}/api/courses`;
-const ASSIGNMENTS_API = `${HTTP_SERVER}/api/assignments`;
-
-export type AssignmentInput = {
-  name: string;
-  description?: string;
-  points?: number;
-  dueDate?: string;
-  availableFrom?: string;
-  availableUntil?: string;
-};
-
-export type Assignment = AssignmentInput & {
-  _id: string;
-  course: string;
-};
-
-export const findAssignmentsForCourse = async (courseId: string) => {
-  const { data } = await axios.get<Assignment[]>(
-    `${COURSES_API}/${courseId}/assignments`
-  );
+// list assignments for a course
+export const findAssignmentsForCourse = async (cid: string) => {
+  const { data } = await axios.get(`${BASE_API}/courses/${cid}/assignments`);
   return data;
 };
 
-export const createAssignment = async (
-  courseId: string,
-  assignment: AssignmentInput
+// create assignment for a course
+export const createAssignmentForCourse = async (
+  cid: string,
+  assignment: any
 ) => {
-  const { data } = await axios.post<Assignment>(
-    `${COURSES_API}/${courseId}/assignments`,
+  const { data } = await axios.post(
+    `${BASE_API}/courses/${cid}/assignments`,
     assignment
   );
   return data;
 };
 
-export const updateAssignment = async (assignment: Assignment) => {
-  const { data } = await axios.put<Assignment>(
-    `${ASSIGNMENTS_API}/${assignment._id}`,
+// update one assignment
+export const updateAssignment = async (assignment: any) => {
+  const { data } = await axios.put(
+    `${BASE_API}/assignments/${assignment._id}`,
     assignment
   );
   return data;
 };
 
+// delete one assignment
 export const deleteAssignment = async (assignmentId: string) => {
-  await axios.delete(`${ASSIGNMENTS_API}/${assignmentId}`);
+  const { data } = await axios.delete(
+    `${BASE_API}/assignments/${assignmentId}`
+  );
+  return data;
 };
