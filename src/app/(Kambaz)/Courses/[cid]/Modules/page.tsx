@@ -45,14 +45,18 @@ export default function Modules() {
   };
 
   // Remove module
-   const onRemoveModule = async (moduleId: string) => {
-    await client.deleteModule(moduleId);
-    dispatch(deleteModule(moduleId));
+   const onRemoveModule = async (courseId: string, moduleId: string) => {
+    await client.deleteModule(cid, moduleId);
+    dispatch(
+      setModules(
+        modules.filter((m: any) => m._id !== moduleId)
+      )
+    );
   };
 
   // Update Module
    const onUpdateModule = async (module: any) => {
-    await client.updateModule(module);
+    await client.updateModule(cid as string, module);
     const newModules = modules.map((m: any) => m._id === module._id ? module : m );
     dispatch(setModules(newModules));
   };
