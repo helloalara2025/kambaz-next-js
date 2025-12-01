@@ -24,8 +24,8 @@ export default function AccountNavigation() {
             href={link}
             active={pathname.endsWith(link.toLowerCase())}
           >
-            {link}{" "}
-          </NavLink>{" "}
+            {link}
+          </NavLink>
         </NavItem>
       ))}
       {currentUser && currentUser.role === "ADMIN" && (
@@ -34,8 +34,7 @@ export default function AccountNavigation() {
           href={`/Account/Users`}
           active={pathname.endsWith("Users")}
         >
-          {" "}
-          Users{" "}
+          Users
         </NavLink>
       )}
     </Nav>
