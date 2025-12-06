@@ -12,96 +12,134 @@
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { mockQuizzes, mockUser } from "./client";
+import * as client from "../../client";
+import { toast } from 'react-toastify'; // Toast notifications
+import QuizzesControls from "./QuizzesControls"; // Component import
+// Redux imports 
+import { setQuizzes, deleteQuiz as deleteQuizAction } from "./reducer";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "../../../store";
 
 export default function Quizzes() {
   const { cid } = useParams();
   const router = useRouter();
 
-  const [quizzes, setQuizzes] = useState<any[]>([]);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  // Redux state
+  const { quizzes } = useSelector((state: RootState) => state.quizzesReducer);
+  const { currentUser } = useSelector((state: RootState) => state.accountReducer);
+  const dispatch = useDispatch();
+
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const isFaculty = currentUser?.role === "FACULTY";
 
-  /* step1 - load quizzes (simulate backend) + sort by available date */
+  /* Load quizzes from backend */
   useEffect(() => {
-    setCurrentUser(mockUser);
-
-    const sorted = [...mockQuizzes].sort((a, b) => {
-      const ad = a.availableDate ? new Date(a.availableDate).getTime() : 0;
-      const bd = b.availableDate ? new Date(b.availableDate).getTime() : 0;
-      return ad - bd;
-    });
-
-    setQuizzes(sorted);
-  }, [cid]);
-
-  /*  step2 add quiz +quiz button creates default quiz + navigates to /Quizzes/[newId] */
-  const handleCreateQuiz = () => {
-    const newQuiz = {
-      _id: Date.now().toString(),
-      title: "New Quiz",
-      published: false,
-      availableDate: null,
-      untilDate: null,
-      dueDate: null,
-      points: 0,
-      questions: []
+    const fetchQuizzes = async () => {
+      try {
+        setLoading(true);
+        const data = await client.findQuizzesForCourse(cid as string);
+        dispatch(setQuizzes(data));
+      } catch (e) {
+        console.error("Failed to load quizzes:", e);
+      } finally {
+        setLoading(false);
+      }
     };
+    fetchQuizzes();
+  }, [cid, dispatch]);
 
-    setQuizzes((prev) => [...prev, newQuiz]);
-    router.push(`/Dashboard/Courses/${cid}/Quizzes/${newQuiz._id}`);
+  /* CREATE QUIZ - Creates via API and navigates to editor */
+  const handleCreateQuiz = async () => {
+    try {
+      const newQuiz = await client.createQuiz(cid as string, {
+        title: "New Quiz",
+        published: false,
+        // availableDate: null,
+        // untilDate: null,
+        // dueDate: null,
+        points: 0,
+        questions: [],
+      });
+      dispatch(setQuizzes([...quizzes, newQuiz]));
+      router.push(`/Dashboard/Courses/${cid}/Quizzes/${newQuiz._id}/edit`);
+    } catch (e) {
+      console.error("Failed to create quiz:", e);
+        toast.error("Failed to create quiz");
+    }
   };
 
-  /* step3 — delete quiz option */
-  const handleDeleteQuiz = (quizId: string) => {
-    if (!confirm("Delete this quiz?")) return;
-    setQuizzes(quizzes.filter((q) => q._id !== quizId));
+  /* DELETE QUIZ - Deletes via API and updates Redux */
+  const handleDeleteQuiz = async (quizId: string) => {
+    if (!confirm("Delete this quiz?")) 
+      return;
+    try {
+      await client.deleteQuiz(cid as string, quizId);
+      dispatch(deleteQuizAction(quizId));
+    } catch (e) {
+      console.error("Failed to delete quiz:", e);
+      toast.error("Failed to delete quiz");
+    }
   };
 
-  /* step4 - publish/unpublish toggle */
-
-  const togglePublish = (quiz: any) => {
-    setQuizzes((prev) =>
-      prev.map((q) =>
-        q._id === quiz._id ? { ...q, published: !q.published } : q
-      )
-    );
+  /* TOGGLE PUBLISH - Updates via API and reloads quizzes */
+  const togglePublish = async (quiz: any) => {
+    try {
+      await client.publishQuiz(cid as string, quiz._id);
+      const updatedQuizzes = await client.findQuizzesForCourse(cid as string);
+      dispatch(setQuizzes(updatedQuizzes));
+    } catch (error) {
+      console.error("Failed to toggle publish:", error);
+      toast.error("Failed to update quiz");
+    }
   };
 
-  /* step5 - availability toggle and date, shows until when the quiz will be available */
+  /* Get availability status based on dates */
   const getAvailabilityStatus = (quiz: any) => {
     const now = new Date();
     const from = quiz.availableDate ? new Date(quiz.availableDate) : null;
     const until = quiz.untilDate ? new Date(quiz.untilDate) : null;
 
-    if (from && now < from) return `Not available until ${from.toLocaleDateString()}`;
+    if (from && now < from)
+      return `Not available until ${from.toLocaleDateString()}`;
     if (until && now > until) return "Closed";
     return "Available";
   };
 
-  /* steo6 = search functionality
-      student-only feature that will be able to search once a course is published     */
-  /* ---------------------------------------------------------------------- */
-  const filtered = quizzes.filter((q) =>
+  /* Filter quizzes based on search term */
+  const filtered = quizzes.filter((q: any) =>
     q.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  /* Show published quizzes ONLY TO STUDENTS */
   const displayQuizzes = isFaculty
     ? filtered
     : filtered.filter((q) => q.published);
 
-
-  /*  render                                                        */
-  /* ---------------------------------------------------------------------- */
+    /* Loading state */
+    if (loading) {
+      return (
+    <div className="container-fluid mt-4 text-center">
+      <div className="spinner-border text-primary" role="status">
+        <span className="visually-hidden">Loading...</span>
+      </div>
+      <p className="mt-2">Loading quizzes...</p>
+    </div>
+      );
+    }
+    
+  /* Render quiz list */
   return (
     <div className="container-fluid" id="wd-quizzes">
 
-      {/* STEP 0 — Testing utility: switch between faculty/student */}
-      <div className="alert alert-info mb-3">
+      { /* Testing utility: switch between faculty/student */}
+      {/* <div className="alert alert-info mb-3">
         Logged in as:{" "}
-        <strong>{currentUser?.firstName} {currentUser?.lastName}</strong> ({currentUser?.role})
+        <strong>
+          {currentUser?.firstName} {currentUser?.lastName}
+        </strong>{" "}
+        ({currentUser?.role})
         <button
           className="btn btn-sm btn-outline-primary ms-3"
           onClick={() =>
@@ -114,31 +152,17 @@ export default function Quizzes() {
         >
           Switch to {isFaculty ? "Student" : "Faculty"}
         </button>
-      </div>
+      </div> */}
 
       {/* search bar and add quiz button */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div className="input-group" style={{ maxWidth: "300px" }}>
-          <span className="input-group-text">
-            <i className="bi bi-search"></i>
-          </span>
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Search quizzes…"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+      <QuizzesControls
+      searchTerm={searchTerm}
+      setSearchTerm={setSearchTerm}
+      addQuiz={handleCreateQuiz}
+      isFaculty={isFaculty}
+      />
 
-        {isFaculty && (
-          <button className="btn btn-danger" onClick={handleCreateQuiz}>
-            <i className="bi bi-plus-lg"></i> Quiz
-          </button>
-        )}
-      </div>
-
-      {/* quiz list container */}
+      {/* Quiz list container */}
       <ul className="list-group">
 
         {/* section label */}
@@ -150,7 +174,6 @@ export default function Quizzes() {
         </li>
 
         {/* empty state */}
-
         {displayQuizzes.length === 0 ? (
           <li className="list-group-item text-center py-5">
             {isFaculty ? (
@@ -171,16 +194,15 @@ export default function Quizzes() {
               key={quiz._id}
               className="list-group-item d-flex align-items-start py-3 px-2"
             >
-
-              {/* visual/faculty */}
+              {/* Drag handle (FACULTY only) */}
               {isFaculty && (
                 <i className="bi bi-grip-vertical text-muted me-3 mt-2"></i>
               )}
 
-              {/* Canvas rocket icon */}
+              {/* Quiz icon */}
               <i
                 className="bi bi-rocket-takeoff text-success me-3 mt-2"
-                style={{ fontSize: "1.5rem" }}
+                // style={{ fontSize: "1.5rem" }}
               ></i>
 
               {/* title + metadata */}
@@ -189,7 +211,7 @@ export default function Quizzes() {
                 <Link
                   href={
                     isFaculty
-                      ? `/Dashboard/Courses/${cid}/Quizzes/${quiz._id}`     /* navigating to the quiz details */
+                      ? `/Dashboard/Courses/${cid}/Quizzes/${quiz._id}` /* navigating to the quiz details */
                       : `/Dashboard/Courses/${cid}/Quizzes/${quiz._id}/take`
                   }
                   className="fw-bold text-dark text-decoration-none"
@@ -199,7 +221,9 @@ export default function Quizzes() {
 
                 {/* availability, due, points, questions */}
                 <div className="text-muted small mt-1">
-                  <span className="me-3"><strong>{getAvailabilityStatus(quiz)}</strong></span>
+                  <span className="me-3">
+                    <strong>{getAvailabilityStatus(quiz)}</strong>
+                  </span>
                   <span className="me-2">|</span>
                   <span className="me-3">
                     <strong>Due:</strong>{" "}
@@ -217,7 +241,6 @@ export default function Quizzes() {
               {/* Faculty actions: Publish + 3-dot menu */}
               {isFaculty && (
                 <div className="d-flex align-items-center">
-
                   {/* Publish/Unpublish toggle */}
                   <button
                     className="btn btn-link text-decoration-none me-2"
@@ -275,7 +298,9 @@ export default function Quizzes() {
                         </button>
                       </li>
 
-                      <li><hr className="dropdown-divider" /></li>
+                      <li>
+                        <hr className="dropdown-divider" />
+                      </li>
 
                       <li>
                         <Link

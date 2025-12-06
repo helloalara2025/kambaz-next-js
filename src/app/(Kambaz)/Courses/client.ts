@@ -103,71 +103,125 @@ export const findUsersForCourse = async (courseId: string) => {
   return response.data;
 };
 
-// ========== Quiz API Functions ==========
-
+// ========== Quizzes ==========
+// GET ALL QUIZZES FOR A COURSE 
 export const findQuizzesForCourse = async (courseId: string) => {
   const response = await axiosWithCredentials.get(`${COURSES_API}/${courseId}/quizzes`);
   return response.data;
 };
 
-export const findQuizById = async (quizId: string) => {
-  const response = await axiosWithCredentials.get(`${HTTP_SERVER}/api/quizzes/${quizId}`);
+// GET A SINGLE QUIZ
+export const findQuizById = async (courseId: string, quizId: string) => {
+  const response = await axiosWithCredentials.get(`${COURSES_API}/${courseId}/quizzes/${quizId}`);
   return response.data;
 };
 
+// CREATE QUIZ 
 export const createQuiz = async (courseId: string, quiz: any) => {
   const response = await axiosWithCredentials.post(
     `${COURSES_API}/${courseId}/quizzes`,
-    quiz
+    quiz || {}
   );
   return response.data;
 };
 
-export const updateQuiz = async (quizId: string, quiz: any) => {
+// UPDATE QUIZ 
+export const updateQuiz = async (courseId: string, quizId: string, quiz: any) => {
   const response = await axiosWithCredentials.put(
-    `${HTTP_SERVER}/api/quizzes/${quizId}`,
-    quiz
+    `${COURSES_API}/${courseId}/quizzes/${quizId}`,
+    quiz 
   );
   return response.data;
 };
 
-export const deleteQuiz = async (quizId: string) => {
+// DELETE QUIZ
+export const deleteQuiz = async (courseId: string, quizId: string) => {
   const response = await axiosWithCredentials.delete(
-    `${HTTP_SERVER}/api/quizzes/${quizId}`
+    `${COURSES_API}/${courseId}/quizzes/${quizId}`
   );
   return response.data;
 };
 
-// Quiz Attempts
-export const submitQuizAttempt = async (quizId: string, attempt: any) => {
-  const response = await axiosWithCredentials.post(
-    `${HTTP_SERVER}/api/quizzes/${quizId}/attempts`,
-    attempt
+// PUBLISH QUIZ
+export const publishQuiz = async (courseId: string, quizId: string) => {
+  const response = await axiosWithCredentials.put(
+    `${COURSES_API}/${courseId}/quizzes/${quizId}/publish`
   );
   return response.data;
-};
-
-export const getLastAttempt = async (quizId: string) => {
-  const response = await axiosWithCredentials.get(
-    `${HTTP_SERVER}/api/quizzes/${quizId}/attempts/last`
-  );
-  return response.data;
-};
-
-export const getAllAttempts = async (quizId: string) => {
-  const response = await axiosWithCredentials.get(
-    `${HTTP_SERVER}/api/quizzes/${quizId}/attempts`
-  );
-  return response.data;
-};
-
-export const getAttemptCount = async (quizId: string) => {
-  const response = await axiosWithCredentials.get(
-    `${HTTP_SERVER}/api/quizzes/${quizId}/attempts/count`
-  );
-  return response.data;
-};
-
-export function profile() {
-  throw new Error("Function not implemented.");
 }
+
+// ======= QUIZ QUESTIONS ====
+
+// ADD QUESTION TO QUIZ
+export const addQuestionToQuiz = async (courseId: string, quizId: string, question: any) => {
+  const response = await axiosWithCredentials.post(
+    `${COURSES_API}/${courseId}/quizzes/${quizId}/questions`,
+    question
+  );
+  return response.data;
+}
+
+// UPDATE QUESTION
+export const updateQuestion = async (courseId: string, quizId: string, questionId: string, updates: any) => {
+  const response = await axiosWithCredentials.put(
+    `${COURSES_API}/${courseId}/quizzes/${quizId}/questions/${questionId}`,
+    updates
+  );
+  return response.data;
+}
+
+// DELETE QUESTION
+export const deleteQuestion = async (courseId: string, quizId: string, questionId: string) => {
+  const response = await axiosWithCredentials.delete(
+    `${COURSES_API}/${courseId}/quizzes/${quizId}/questions/${questionId}`
+  );
+  return response.data;
+};
+
+// ===== QUIZ ATTEMPTS =====
+
+// Get all attempts for a quiz
+export const getAllAttempts = async (courseId: string, quizId: string) => {
+  const response = await axiosWithCredentials.get(
+    `${COURSES_API}/${courseId}/quizzes/${quizId}/attempts`
+  );
+  return response.data;
+};
+
+// Get latest attempt
+export const getLatestAttempt = async (courseId: string, quizId: string) => {
+  const response = await axiosWithCredentials.get(
+    `${COURSES_API}/${courseId}/quizzes/${quizId}/attempts/latest`
+  );
+  return response.data;
+};
+
+// Start new attempt
+export const startQuizAttempt = async (courseId: string, quizId: string) => {
+  const response = await axiosWithCredentials.post(
+    `${COURSES_API}/${courseId}/quizzes/${quizId}/attempts`
+  );
+  return response.data;
+};
+
+// Save answers (auto-save without submitting)
+export const saveQuizAnswers = async (courseId: string, quizId: string, attemptId: string, answers: any[]) => {
+  const response = await axiosWithCredentials.put(
+    `${COURSES_API}/${courseId}/quizzes/${quizId}/attempts/${attemptId}`,
+    { answers }
+  );
+  return response.data;
+};
+
+// Submit attempt
+export const submitQuizAttempt = async (courseId: string, quizId: string, attemptId: string, answers: any[]) => {
+  const response = await axiosWithCredentials.post(
+    `${COURSES_API}/${courseId}/quizzes/${quizId}/attempts/${attemptId}/submit`,
+    { answers }
+  );
+  return response.data;
+};
+
+// export function profile() {
+//   throw new Error("Function not implemented.");
+// }

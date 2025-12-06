@@ -4,6 +4,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 //import "./globals.css"; // --- IGNORE for textbook 1.2.4---
 import "bootstrap/dist/css/bootstrap.min.css";
 import { ReactNode } from "react";
+import { ToastContainer } from "react-toastify"; // for popup error alerts 
+import 'react-toastify/dist/ReactToastify.css';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,9 +34,23 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
+
+        {/* Toast notification container */}
+        <ToastContainer 
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
+        
       </body>
     </html>
   );
