@@ -4,7 +4,7 @@
 
 import type { ReactNode } from "react";
 import { FaAlignJustify } from "react-icons/fa";
-import CourseNavigation from "@/app/Kambaz/Courses/[cid]/cid_navigation";
+import CourseNavigation from "@/app/(Kambaz)/Courses/[cid]/cid_navigation";
 
 export default async function CoursesLayout({
   children,

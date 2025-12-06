@@ -4,7 +4,7 @@
 "use client";
 // Presereve the Kambaz navigation and layout for all courses pages.
 import { ReactNode, useState } from "react"; // for children
-import CourseNavigation from "./cid_navigation"; // for the course nav. sidebar
+import CourseNavigation from "./cid_navigation";
 import { useSelector } from "react-redux";
 import { useParams } from "next/navigation";
 import { RootState } from "../../store";
