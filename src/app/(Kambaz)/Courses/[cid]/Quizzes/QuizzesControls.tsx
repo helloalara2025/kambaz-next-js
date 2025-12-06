@@ -1,8 +1,12 @@
-// The + Quiz button
+// The + Quiz button with 3-dot menu
 "use client";
-import { Button } from "react-bootstrap";
-import { FaPlus } from "react-icons/fa";
-
+import { Button, Dropdown } from "react-bootstrap";
+import { FaPlus, FaGlasses, FaChalkboardTeacher } from "react-icons/fa";
+import { IoEllipsisVertical } from "react-icons/io5";
+import { FaRegCircleXmark } from "react-icons/fa6";
+import { FcCheckmark } from "react-icons/fc";
+import Stack from "react-bootstrap/Stack";
+import { useState } from "react";
 /**
  * QuizzesControls component props.
  * Interface (not constants) because these are dynamic runtime values
@@ -13,6 +17,8 @@ interface QuizControlProps {
   setSearchTerm: (term: string) => void; // Function: updates parent state (not a constant)
   addQuiz: () => void; // Callback: triggers quiz creation (not a constant)
   isFaculty: boolean; // Computed: based on user role (not a constant)
+  isPreviewing: boolean;
+  setIsPreviewing: (isViewing: boolean) => void;
 }
 
 export default function QuizzesControls({
@@ -20,11 +26,15 @@ export default function QuizzesControls({
   setSearchTerm,
   addQuiz,
   isFaculty,
+  isPreviewing,
+  setIsPreviewing,
 }: QuizControlProps) {
+  const [tempSearch, setTempSearch] = useState(searchTerm);
+
   return (
     <div className="d-flex justify-content-between align-items-center mb-4">
-      {/* search bar and add quiz button */}
-      <div className="input-group" style={{ maxWidth: "300px" }}>
+      {/* Search bar */}
+      <div className="input-group" style={{ maxWidth: "500px" }}>
         <span className="input-group-text">
           <i className="bi bi-search"></i>
         </span>
@@ -33,19 +43,108 @@ export default function QuizzesControls({
           type="text"
           className="form-control"
           placeholder="Search quizzes…"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          value={tempSearch}
+          onChange={(e) => setTempSearch(e.target.value)}
         />
+
+        {/* Search button */}
+        <Stack direction="horizontal" gap={4}>
+          <Button
+            variant="primary"
+            onClick={() => setSearchTerm(tempSearch)}
+            className="ms-3"
+          >
+            Search
+          </Button>
+          {/* Clear search */}
+          <Button
+            variant="danger"
+            onClick={() => {
+              setSearchTerm("");
+              setTempSearch("");
+            }}
+          >
+            Clear
+          </Button>
+        </Stack>
       </div>
-      {/* Add Quiz Button - Right Side (Faculty Only) */}
-      {isFaculty && (
-        <Button 
-        className="btn btn-danger" 
-        onClick={addQuiz}>
-            <FaPlus className="position-relative me-2" style={{ bottom: "1px" }} />
-               Quiz
-        </Button>
-      )}
+
+      {/* Add Quiz Button + 3-dot menu (Faculty Only) */}
+      <Stack direction="horizontal" gap={4}>
+        {isFaculty && (
+          <div className="d-flex gap-2">
+            {/* Switch to Student Quiz List View / Faculty Viewing */}
+            <Button
+              variant={isPreviewing ? "warning" : "secondary"}
+              onClick={() => setIsPreviewing(!isPreviewing)}
+              title={isPreviewing ? "Exit Student View" : "View as Student"}
+            >
+              {isPreviewing ? (
+                <>
+                  <FaChalkboardTeacher
+                    className="position-relative me-2"
+                    style={{ bottom: "1px" }}
+                  />
+                  Exit Preview
+                </>
+              ) : (
+                <>
+                  <FaGlasses
+                    className="position-relative me-2"
+                    style={{ bottom: "1px" }}
+                  />
+                  Student View
+                </>
+              )}
+            </Button>
+
+            {/* Add Quiz Button */}
+            <Button variant="danger" onClick={addQuiz}>
+              <FaPlus
+                className="position-relative me-2"
+                style={{ bottom: "1px" }}
+              />
+              Quiz
+            </Button>
+
+            {/* 3-dot menu for quiz controls */}
+            <Dropdown>
+              <Dropdown.Toggle variant="secondary" id="quiz-controls-dropdown">
+                <IoEllipsisVertical className="fs-5" />
+              </Dropdown.Toggle>
+
+              <Dropdown.Menu align="end">
+                <Dropdown.Item>
+                  <i className="bi bi-search me-2 text-primary"></i>
+                  Search for Quiz
+                </Dropdown.Item>
+
+                <Dropdown.Item>
+                  <i className="bi bi-arrow-down-up me-2 text-info"></i>
+                  Sort by Name
+                </Dropdown.Item>
+
+                <Dropdown.Item>
+                  <i className="bi bi-calendar me-2 text-success"></i>
+                  Sort by Date
+                </Dropdown.Item>
+
+                <Dropdown.Divider />
+
+                <Dropdown.Item>
+                  <FcCheckmark className="bi bi-check-circle me-2 text-success"></FcCheckmark>
+                  Publish All
+                </Dropdown.Item>
+
+                <Dropdown.Item>
+                  <FaRegCircleXmark className="bi bi-x-circle me-2 text-warning"></FaRegCircleXmark>
+                  Unpublish All
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+          </div>
+        )}
+      </Stack>
     </div>
   );
 }

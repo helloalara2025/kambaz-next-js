@@ -11,14 +11,20 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import * as client from "../../client";
 import { toast } from 'react-toastify'; // Toast notifications
-import QuizzesControls from "./QuizzesControls"; // Component import
+
+// Component improts
+import QuizzesControls from "./QuizzesControls";
+import QuizListItem from "./QuizListItem";
+import EmptyState from "./EmptyState";
+import { getAvailabilityStatus, filterQuizzes } from "./quizUtils";
+
 // Redux imports 
 import { setQuizzes, deleteQuiz as deleteQuizAction } from "./reducer";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../../store";
+
 
 export default function Quizzes() {
   const { cid } = useParams();
@@ -31,8 +37,11 @@ export default function Quizzes() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [isPreviewing, setIsPreviewing] = useState(false);
 
   const isFaculty = currentUser?.role === "FACULTY";
+
+  const displayFacultyStudent = isFaculty && !isPreviewing;
 
   /* Load quizzes from backend */
   useEffect(() => {
@@ -40,6 +49,7 @@ export default function Quizzes() {
       try {
         setLoading(true);
         const data = await client.findQuizzesForCourse(cid as string);
+        // Sort by available date
         dispatch(setQuizzes(data));
       } catch (e) {
         console.error("Failed to load quizzes:", e);
@@ -56,13 +66,14 @@ export default function Quizzes() {
       const newQuiz = await client.createQuiz(cid as string, {
         title: "New Quiz",
         published: false,
-        // availableDate: null,
-        // untilDate: null,
-        // dueDate: null,
+        availableDate: null,
+        untilDate: null,
+        dueDate: null,
         points: 0,
         questions: [],
       });
       dispatch(setQuizzes([...quizzes, newQuiz]));
+      toast.success("Quiz created!");
       router.push(`/Dashboard/Courses/${cid}/Quizzes/${newQuiz._id}/edit`);
     } catch (e) {
       console.error("Failed to create quiz:", e);
@@ -77,6 +88,7 @@ export default function Quizzes() {
     try {
       await client.deleteQuiz(cid as string, quizId);
       dispatch(deleteQuizAction(quizId));
+      toast.success("Quiz deleted!");
     } catch (e) {
       console.error("Failed to delete quiz:", e);
       toast.error("Failed to delete quiz");
@@ -89,33 +101,26 @@ export default function Quizzes() {
       await client.publishQuiz(cid as string, quiz._id);
       const updatedQuizzes = await client.findQuizzesForCourse(cid as string);
       dispatch(setQuizzes(updatedQuizzes));
+      toast.success(quiz.published ? "Quiz unpublished" : "Quiz published" );
     } catch (error) {
       console.error("Failed to toggle publish:", error);
       toast.error("Failed to update quiz");
     }
   };
 
-  /* Get availability status based on dates */
-  const getAvailabilityStatus = (quiz: any) => {
-    const now = new Date();
-    const from = quiz.availableDate ? new Date(quiz.availableDate) : null;
-    const until = quiz.untilDate ? new Date(quiz.untilDate) : null;
+  // /* Show published quizzes ONLY TO STUDENTS */
+  const displayQuizzes = filterQuizzes(quizzes, searchTerm, displayFacultyStudent);
 
-    if (from && now < from)
-      return `Not available until ${from.toLocaleDateString()}`;
-    if (until && now > until) return "Closed";
-    return "Available";
-  };
-
-  /* Filter quizzes based on search term */
-  const filtered = quizzes.filter((q: any) =>
-    q.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  /* Show published quizzes ONLY TO STUDENTS */
-  const displayQuizzes = isFaculty
-    ? filtered
-    : filtered.filter((q) => q.published);
+  // Protection against undefined CID
+  if (!cid) {
+    return (
+      <div className="container-fluid mt-4">
+        <div className="alert alert-warning">
+          No course selected. Please select a course from the Dashboard.
+        </div>
+      </div>
+    );
+  }
 
     /* Loading state */
     if (loading) {
@@ -133,39 +138,20 @@ export default function Quizzes() {
   return (
     <div className="container-fluid" id="wd-quizzes">
 
-      { /* Testing utility: switch between faculty/student */}
-      {/* <div className="alert alert-info mb-3">
-        Logged in as:{" "}
-        <strong>
-          {currentUser?.firstName} {currentUser?.lastName}
-        </strong>{" "}
-        ({currentUser?.role})
-        <button
-          className="btn btn-sm btn-outline-primary ms-3"
-          onClick={() =>
-            setCurrentUser(
-              currentUser?.role === "FACULTY"
-                ? { ...mockUser, role: "STUDENT" }
-                : mockUser
-            )
-          }
-        >
-          Switch to {isFaculty ? "Student" : "Faculty"}
-        </button>
-      </div> */}
-
       {/* search bar and add quiz button */}
       <QuizzesControls
       searchTerm={searchTerm}
       setSearchTerm={setSearchTerm}
       addQuiz={handleCreateQuiz}
       isFaculty={isFaculty}
+      isPreviewing={isPreviewing}
+      setIsPreviewing={setIsPreviewing}
       />
 
       {/* Quiz list container */}
       <ul className="list-group">
 
-        {/* section label */}
+        {/* Section label */}
         <li className="list-group-item bg-light border-0">
           <h5 className="mb-0">
             <i className="bi bi-grip-vertical me-2"></i>
@@ -175,149 +161,25 @@ export default function Quizzes() {
 
         {/* empty state */}
         {displayQuizzes.length === 0 ? (
-          <li className="list-group-item text-center py-5">
-            {isFaculty ? (
-              <>
-                <p className="text-muted mb-2">No quizzes yet</p>
-                <button className="btn btn-primary" onClick={handleCreateQuiz}>
-                  <i className="bi bi-plus-lg"></i> Create Your First Quiz
-                </button>
-              </>
-            ) : (
-              <p className="text-muted">No quizzes available</p>
-            )}
-          </li>
+          <EmptyState
+          isFaculty={displayFacultyStudent}
+          onCreateQuiz={handleCreateQuiz}
+          />
         ) : (
           /* quiz item rows*/
-          displayQuizzes.map((quiz) => (
-            <li
-              key={quiz._id}
-              className="list-group-item d-flex align-items-start py-3 px-2"
-            >
-              {/* Drag handle (FACULTY only) */}
-              {isFaculty && (
-                <i className="bi bi-grip-vertical text-muted me-3 mt-2"></i>
-              )}
-
-              {/* Quiz icon */}
-              <i
-                className="bi bi-rocket-takeoff text-success me-3 mt-2"
-                // style={{ fontSize: "1.5rem" }}
-              ></i>
-
-              {/* title + metadata */}
-              <div className="flex-grow-1">
-                {/* quiz details (or Take view for students) */}
-                <Link
-                  href={
-                    isFaculty
-                      ? `/Dashboard/Courses/${cid}/Quizzes/${quiz._id}` /* navigating to the quiz details */
-                      : `/Dashboard/Courses/${cid}/Quizzes/${quiz._id}/take`
-                  }
-                  className="fw-bold text-dark text-decoration-none"
-                >
-                  {quiz.title}
-                </Link>
-
-                {/* availability, due, points, questions */}
-                <div className="text-muted small mt-1">
-                  <span className="me-3">
-                    <strong>{getAvailabilityStatus(quiz)}</strong>
-                  </span>
-                  <span className="me-2">|</span>
-                  <span className="me-3">
-                    <strong>Due:</strong>{" "}
-                    {quiz.dueDate
-                      ? new Date(quiz.dueDate).toLocaleDateString()
-                      : "No due date"}
-                  </span>
-                  <span className="me-2">|</span>
-                  <span className="me-3">{quiz.points || 0} pts</span>
-                  <span className="me-2">|</span>
-                  <span>{quiz.questions?.length || 0} Questions</span>
-                </div>
-              </div>
-
-              {/* Faculty actions: Publish + 3-dot menu */}
-              {isFaculty && (
-                <div className="d-flex align-items-center">
-                  {/* Publish/Unpublish toggle */}
-                  <button
-                    className="btn btn-link text-decoration-none me-2"
-                    onClick={() => togglePublish(quiz)}
-                  >
-                    {quiz.published ? (
-                      <i className="bi bi-check-circle-fill text-success fs-4"></i>
-                    ) : (
-                      <i className="bi bi-slash-circle text-secondary fs-4"></i>
-                    )}
-                  </button>
-
-                  {/* 3-dots dropdown menu */}
-                  <div className="dropdown">
-                    <button
-                      className="btn btn-link text-dark"
-                      data-bs-toggle="dropdown"
-                    >
-                      <i className="bi bi-three-dots-vertical"></i>
-                    </button>
-
-                    <ul className="dropdown-menu dropdown-menu-end">
-                      {/* edit */}
-                      <li>
-                        <Link
-                          className="dropdown-item"
-                          href={`/Dashboard/Courses/${cid}/Quizzes/${quiz._id}`}
-                        >
-                          <i className="bi bi-pencil me-2"></i>Edit
-                        </Link>
-                      </li>
-
-                      {/* delete */}
-                      <li>
-                        <button
-                          className="dropdown-item"
-                          onClick={() => handleDeleteQuiz(quiz._id)}
-                        >
-                          <i className="bi bi-trash me-2"></i>Delete
-                        </button>
-                      </li>
-
-                      {/* publish/unpublish */}
-                      <li>
-                        <button
-                          className="dropdown-item"
-                          onClick={() => togglePublish(quiz)}
-                        >
-                          <i
-                            className={`bi ${
-                              quiz.published ? "bi-x-circle" : "bi-check-circle"
-                            } me-2`}
-                          ></i>
-                          {quiz.published ? "Unpublish" : "Publish"}
-                        </button>
-                      </li>
-
-                      <li>
-                        <hr className="dropdown-divider" />
-                      </li>
-
-                      <li>
-                        <Link
-                          className="dropdown-item"
-                          href={`/Dashboard/Courses/${cid}/Quizzes/${quiz._id}/preview`}
-                        >
-                          <i className="bi bi-eye me-2"></i>Preview
-                        </Link>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              )}
-            </li>
+          displayQuizzes.map((quiz: any) => (
+            <QuizListItem
+            key={quiz._id}
+            quiz={quiz}
+            cid={cid as string}
+            isFaculty={displayFacultyStudent}
+            onDelete={handleDeleteQuiz}
+            onTogglePublish={togglePublish}
+            getAvailabilityStatus={getAvailabilityStatus}
+            />
           ))
         )}
-      </ul>
-    </div>
-  );
+        </ul>
+        </div>
+  ); 
 }

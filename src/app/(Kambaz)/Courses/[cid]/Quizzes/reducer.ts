@@ -1,5 +1,7 @@
+// Redux state management
+// Statue updates (add, delete, update quizzes)
+// Pure Redux logic
 import { createSlice } from "@reduxjs/toolkit";
-
 import { quizzes } from "../../../Database";
 
 const initialState = {

@@ -1,6 +1,7 @@
 "use client";
 
 /*
+Taking the quiz 
   quiz details – flow & notes
   - shows a single quiz overview for the current course.
   - faculty can preview, edit, publish/unpublish.
