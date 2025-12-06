@@ -1,11 +1,9 @@
-// This is the whole app layout file. It is used to wrap all the pages.
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-//import "./globals.css"; // --- IGNORE for textbook 1.2.4---
 import "bootstrap/dist/css/bootstrap.min.css";
-import { ReactNode } from "react";
-import { ToastContainer } from "react-toastify"; // for popup error alerts 
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Script from 'next/script'; 
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,14 +28,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Scales page to view on local machine */}
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
-
-        {/* Toast notification container */}
+        
+        {/* Toast notifications */}
         <ToastContainer 
           position="top-right"
           autoClose={3000}
@@ -51,6 +47,11 @@ export default function RootLayout({
           theme="light"
         />
         
+        {/* Bootstrap JavaScript funcitonality added */}
+        <Script 
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
