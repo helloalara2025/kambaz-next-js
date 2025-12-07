@@ -221,7 +221,3 @@ export const submitQuizAttempt = async (courseId: string, quizId: string, attemp
   );
   return response.data;
 };
-
-// export function profile() {
-//   throw new Error("Function not implemented.");
-// }
