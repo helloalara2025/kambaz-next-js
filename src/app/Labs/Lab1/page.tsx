@@ -5,8 +5,8 @@ export default function Lab1() {
     <>
       <div id="wd-lab1">
         <h2>Lab 1</h2>
-        <p>Ella Pitts - CS5610 Web Development Section 04</p>
-        <h3>HTML Examples</h3>
+        <p>CS5610 Web Development Section 04</p>
+        <h3>HTML</h3>
         <div id="wd-h-tag">
           {/* TODO: CHANGE */}
           <h4>Heading Tags</h4>

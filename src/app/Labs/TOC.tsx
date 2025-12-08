@@ -61,22 +61,6 @@ export default function TOC() {
           Lab 5
         </NavLink>
       </NavItem>
-
-      <NavItem>
-        <NavLink href="/Account/Signin">Kambaz</NavLink>
-      </NavItem>
-
-      <NavItem>
-        <NavLink href="https://github.com/ellapitts/kambaz-next-js">
-          Frontend Repository
-        </NavLink>
-      </NavItem>
-
-      <NavItem>
-        <NavLink href="https://github.com/ellapitts/kambaz-node-server-app">
-          Server Repository
-        </NavLink>
-      </NavItem>
     </Nav>
   );
 }

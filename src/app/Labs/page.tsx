@@ -5,10 +5,9 @@ import Link from "next/link";
 export default function Labs() {
   return (
     <div id="wd-labs">
-      <h1>Labs - Table of Contents</h1>
+      <h1>Labs - TOC</h1>
 
-      <h3>Author: Ella Pitts and Alara Hakki </h3>
-      <h5>CS5610 Web Development - Section 04</h5>
+      <h3> Alara Hakki / web development / fall 2025 </h3>
 
       <ul>
         <li>
@@ -46,30 +45,17 @@ export default function Labs() {
           <Link href="/Account/Signin">Kambaz Application</Link>
         </li>
         <li>
-          <a href="https://github.com/ellapitts/kambaz-final-front-end" 
+          <a href="https://github.com/helloalara2025" 
           id="wd-github-client-side">
-            Ella Pitts and Alara Hakki GitHub Repository - Front End
+            Alara Hakki / GitHub Link / Profile
           </a>
         </li>
-
-        {/* Backend */}
         <li>
           <a
-            href="https://github.com/ellapitts?tab=repositories"
+            href="https://github.com/helloalara2025/kambaz-next-js"
             id="wd-github-server-side"
           >
-            Backend Repository
-          </a>
-        </li>
-
-
-        {/* Mongo */}
-        <li>
-          <a
-            href="https://cloud.mongodb.com/v2/692d3923ef03995c996a7cdf#/explorer/692d3c3b8a52ed5ad1d5d71f/kambaz/users/find"
-            id="wd-github-mongo-db-atlas"
-          >
-            MongoDB Atlas lin
+            Github Repo for: JS and FE , total branches: 7 
           </a>
         </li>
       </ul>
