@@ -2,9 +2,10 @@
 
 // Preserve the Kambaz navigation and layout for all course pages.
 
-import type { ReactNode } from "react";
-import { FaAlignJustify } from "react-icons/fa";
-import CourseNavigation from "@/app/Kambaz/Courses/[cid]/cid_navigation";
+import Modules from "../../../Courses/[cid]/Modules/page";
+import CourseStatus from "../../../Courses/[cid]/Home/coursehomepagestatus";
+import React from "react";
+import CourseNavigation from "../../../Courses/[cid]/cid_navigation"; 
 
 export default async function CoursesLayout({
   children,
