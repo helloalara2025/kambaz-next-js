@@ -2,7 +2,7 @@ import { useState } from "react"; // import useState
 import { FormControl } from "react-bootstrap";
 
 export default function StringStateVariables() {
-  const [firstName, setFirstName] = useState("Ella Pitts"); // declare, initialize, state variable
+  const [firstName, setFirstName] = useState("alara h"); // declare, initialize, state variable
   return (
     <div>
       <h2>String State Variables</h2>
