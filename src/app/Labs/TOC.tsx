@@ -60,6 +60,40 @@ export default function TOC() {
           Lab 5
         </NavLink>
       </NavItem>
+      <NavItem>
+        <NavLink
+          href="https://github.com/helloalara2025/kambaz-node-server-app"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="nav-link"
+        >
+          Backend GitHub Repo
+        </NavLink>
+      </NavItem>
+
+       <NavItem>
+        <NavLink
+          href="https://github.com/helloalara2025/kambaz-next-js/tree/a5final"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="nav-link"
+        >
+          Frontend GitHub Repo 
+        </NavLink>
+      </NavItem>
+
+      <NavItem>
+        <NavLink
+          href="https://kambaz-node-server-app.onrender.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="nav-link"
+        >
+          Node Server on Render
+        </NavLink>
+      </NavItem>
+
+      
     </Nav>
   );
 }
