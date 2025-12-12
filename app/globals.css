@@ -1,0 +1,88 @@
+/**
+ * ╔═══════════════════════════════════════════════════════════════════════════╗
+ * ║                        GLOBAL STYLES                                      ║
+ * ║                         Created by Alara                                  ║
+ * ╚═══════════════════════════════════════════════════════════════════════════╝
+ * 
+ * Global styles that apply to the entire application.
+ * Bootstrap handles most styling, but we add custom rules here.
+ */
+
+/* Remove default link underlines */
+a {
+  text-decoration: none;
+}
+
+/* Kambaz navigation styling */
+.wd-kambaz-navigation {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 110px;
+  background-color: black;
+  z-index: 1000;
+}
+
+/* Main content area - accounts for fixed nav */
+.wd-main-content-offset {
+  margin-left: 110px;
+}
+
+/* Course navigation sidebar */
+.wd-courses-navigation {
+  width: 220px;
+  min-height: 100vh;
+}
+
+/* Dashboard course cards */
+.wd-dashboard-course {
+  transition: transform 0.2s;
+}
+
+.wd-dashboard-course:hover {
+  transform: translateY(-2px);
+}
+
+/* Module list styling */
+.wd-module {
+  border: 1px solid #dee2e6;
+  margin-bottom: 0.5rem;
+}
+
+.wd-module-title {
+  background-color: #f8f9fa;
+  padding: 0.75rem;
+  font-weight: 500;
+}
+
+.wd-module-content {
+  padding: 0.5rem;
+}
+
+/* Assignment list */
+.wd-assignment-list-item {
+  border-left: 3px solid #28a745;
+}
+
+/* People table */
+.wd-people-table th {
+  background-color: #f8f9fa;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

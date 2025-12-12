@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" viewBox="0 0 400 200">
+  <rect width="400" height="200" fill="#61DAFB"/>
+  <text x="200" y="90" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#282C34">⚛️ React Course</text>
+  <text x="200" y="130" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#282C34">Kambaz LMS</text>
+  <text x="200" y="160" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#282C34">Created by Alara</text>
+</svg>
