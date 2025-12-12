@@ -8,7 +8,7 @@ export default function TOC() {
   return (
     <Nav variant="pills">
       <NavItem>
-        <span className="navbar-brand">Ella Pitts</span>
+        <span className="navbar-brand">KAMBAZ</span>
         <NavLink
           href="/Labs"
           className={`nav-link${pathname.endsWith("Labs") ? " active" : ""}`}
