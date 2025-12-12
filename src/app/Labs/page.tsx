@@ -7,8 +7,8 @@ export default function Labs() {
     <div id="wd-labs">
       <h1>Labs - Table of Contents</h1>
 
-      <h3>Author: Ella Pitts and Alara Hakki </h3>
-      <h5>CS5610 Web Development - Section 04</h5>
+      <h3>Alara H. </h3>
+      <h5>CS5610 Web Development - 2025</h5>
 
       <ul>
         <li>
