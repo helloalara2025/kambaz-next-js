@@ -37,7 +37,7 @@ export const findMyCourses = async () => {
 };
 
 export const createCourse = async (course: any) => {
-  const { data } = await axiosWithCredentials.post(`${USERS_API}/current/courses`, course);
+  const { data } = await axiosWithCredentials.post(COURSES_API, course);
   return data;
 };
 
@@ -58,14 +58,14 @@ export const updateCourse = async (course: any) => {
 
 // Enroll in course
 export const enrollIntoCourse = async (userId: string, courseId: string) => {
- const response = await axiosWithCredentials.post(`${USERS_API}/${userId}/courses/${courseId}`);
- return response.data;
+  const response = await axiosWithCredentials.post(`${USERS_API}/${userId}/courses/${courseId}`);
+  return response.data;
 };
 
 // Unenroll in course
 export const unenrollFromCourse = async (userId: string, courseId: string) => {
- const response = await axiosWithCredentials.delete(`${USERS_API}/${userId}/courses/${courseId}`);
- return response.data;
+  const response = await axiosWithCredentials.delete(`${USERS_API}/${userId}/courses/${courseId}`);
+  return response.data;
 };
 
 
@@ -88,12 +88,17 @@ export const findModulesForCourse = async (courseId: string) => {
 
 // Update module
 export const updateModule = async (courseId: string, module: any) => {
-  const { data } = await axios.put(`${MODULES_API}/${module._id}`, module);
+  const { data } = await axios.put(
+    `${COURSES_API}/${courseId}/modules/${module._id}`,
+    module
+  );
   return data;
 };
 
 export const deleteModule = async (courseId: string, moduleId: string) => {
-  const response = await axiosWithCredentials.delete(`${MODULES_API}/${moduleId}`);
+  const response = await axiosWithCredentials.delete(
+    `${COURSES_API}/${courseId}/modules/${moduleId}`
+  );
   return response.data;
 };
 
@@ -129,7 +134,7 @@ export const createQuiz = async (courseId: string, quiz: any) => {
 export const updateQuiz = async (courseId: string, quizId: string, quiz: any) => {
   const response = await axiosWithCredentials.put(
     `${COURSES_API}/${courseId}/quizzes/${quizId}`,
-    quiz 
+    quiz
   );
   return response.data;
 };

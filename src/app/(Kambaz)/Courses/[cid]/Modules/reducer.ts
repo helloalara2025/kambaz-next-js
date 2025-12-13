@@ -25,13 +25,8 @@ const modulesSlice = createSlice({
     },
 
     addModule: (state, { payload: module }) => {
-      const newModule: any = {
-        _id: uuidv4(),
-        lessons: [],
-        name: module.name,
-        course: module.course,
-      };
-      state.modules = [...state.modules, newModule] as any;
+      /* Module already has _id from backend, use as-is */
+      state.modules = [...state.modules, module] as any;
     },
 
     // module's ID to delete is in action.payload

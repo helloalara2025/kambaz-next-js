@@ -14,17 +14,8 @@ const assignmentsSlice = createSlice({
   reducers: {
     // add new assignment
     addAssignment: (state, { payload: assignment }) => {
-      const newAssignment: any = {
-        _id: uuidv4(),
-        title: assignment.title,
-        course: assignment.course,
-        description: assignment.description,
-        points: assignment.points,
-        dueDate: assignment.dueDate,
-        availableFrom: assignment.availableFrom,
-        availableUntil: assignment.availableUntil,
-      };
-      state.assignments = [...state.assignments, newAssignment] as any;
+      /* Assignment already has _id from backend, use as-is */
+      state.assignments = [...state.assignments, assignment] as any;
     },
 
     // assignment's ID to delete is in action.payload
@@ -51,7 +42,7 @@ const assignmentsSlice = createSlice({
     },
 
     // replaces all assignments with new array in Redux with new data from server
-    setAssignments: (state, { payload: assignments}) => {
+    setAssignments: (state, { payload: assignments }) => {
       state.assignments = assignments;
     },
   },

@@ -3,7 +3,7 @@ import coursesReducer from "./Courses/reducer";
 import modulesReducer from "./Courses/[cid]/Modules/reducer";
 import accountReducer from "./Account/reducer";
 import assignmentsReducer from "./Courses/[cid]/Assignments/reducer"; 
-import enrollmentsReducer from "../(Kambaz)/Dashboard/enrollmentsReducer";
+import enrollmentsReducer from "../(Kambaz)/Enrollments/reducer";
 import quizzesReducer from "../(Kambaz)/Courses/[cid]/Quizzes/reducer";
 
 const store = configureStore({

@@ -17,12 +17,12 @@ export default function Signup() {
     try {
       const currentUser = await client.signup(user);
       dispatch(setCurrentUser(currentUser));
-      router.push("/Profile");
+      router.push("/Account/Profile");
     } catch (error: any) {
       console.error("Signup error:", error);
       const message = error?.response?.data?.message || "Signup failed";
       alert(message);
-    } 
+    }
   };
   return (
     <div className="wd-signup-screen">
