@@ -50,7 +50,7 @@ export default function WorkingWithArrays() {
 
       <h3>Creating new Items in an Array</h3>
       <a
-        id="wd-retrieve-completed-todos"
+        id="wd-create-todo"
         className="btn btn-primary w-100"
         href={`${API}/create`}
       >

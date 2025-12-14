@@ -35,7 +35,7 @@ export default function WorkingWithArraysAsynchronously() {
   };
 
   // Update todo both locally and on server
-  const updateTodo = async (todo: any) => {
+  const saveTodo = async (todo: any) => {
     try {
       await client.updateTodo(todo);
       setTodos(todos.map((t) => (t.id === todo.id ? todo : t)));
@@ -43,6 +43,11 @@ export default function WorkingWithArraysAsynchronously() {
     } catch (error: any) {
       setErrorMessage(error.response?.data?.message || "Error updating todo");
     }
+  };
+
+  // Update todo locally only
+  const updateTodo = (todo: any) => {
+    setTodos(todos.map((t) => (t.id === todo.id ? todo : t)));
   };
 
   // Create a new todo via GET route
@@ -111,7 +116,7 @@ export default function WorkingWithArraysAsynchronously() {
         <FaPlusCircle
           onClick={createNewTodo}
           className="text-success float-end fs-3"
-          id="wd-create-todos"
+          id="wd-create-todo"
         />{" "}
         <FaPlusCircle
           onClick={postNewTodo}
@@ -133,7 +138,7 @@ export default function WorkingWithArraysAsynchronously() {
                 className="form-check-input"
                 defaultChecked={todo.completed}
                 onChange={(e) =>
-                  updateTodo({ ...todo, completed: e.target.checked })
+                  saveTodo({ ...todo, completed: e.target.checked })
                 }
               />
               {!todo.editing ? (
@@ -150,7 +155,7 @@ export default function WorkingWithArraysAsynchronously() {
                   defaultValue={todo.title}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
-                      updateTodo({ ...todo, editing: false });
+                      saveTodo({ ...todo, editing: false });
                     }
                   }}
                   onChange={(e) =>
