@@ -35,7 +35,7 @@ export default function WorkingWithArraysAsynchronously() {
   };
 
   // Update todo both locally and on server
-  const saveTodo = async (todo: any) => {
+  const updateTodo = async (todo: any) => {
     try {
       await client.updateTodo(todo);
       setTodos(todos.map((t) => (t.id === todo.id ? todo : t)));
@@ -43,11 +43,6 @@ export default function WorkingWithArraysAsynchronously() {
     } catch (error: any) {
       setErrorMessage(error.response?.data?.message || "Error updating todo");
     }
-  };
-
-  // Update todo locally only
-  const updateTodo = (todo: any) => {
-    setTodos(todos.map((t) => (t.id === todo.id ? todo : t)));
   };
 
   // Create a new todo via GET route
@@ -138,7 +133,7 @@ export default function WorkingWithArraysAsynchronously() {
                 className="form-check-input"
                 defaultChecked={todo.completed}
                 onChange={(e) =>
-                  saveTodo({ ...todo, completed: e.target.checked })
+                  updateTodo({ ...todo, completed: e.target.checked })
                 }
               />
               {!todo.editing ? (
@@ -155,7 +150,7 @@ export default function WorkingWithArraysAsynchronously() {
                   defaultValue={todo.title}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
-                      saveTodo({ ...todo, editing: false });
+                      updateTodo({ ...todo, editing: false });
                     }
                   }}
                   onChange={(e) =>
