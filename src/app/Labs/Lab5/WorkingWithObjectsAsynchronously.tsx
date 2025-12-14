@@ -18,7 +18,7 @@ export default function WorkingWithObjectsAsynchronously() {
   useEffect(() => {
     fetchAssignment();
   }, []);
-  
+
   return (
     <div id="wd-asynchronous-objects">
       <h3>Working with Objects Asynchronously</h3>
@@ -31,7 +31,7 @@ export default function WorkingWithObjectsAsynchronously() {
         }
       />
       <FormControl
-      as="textarea"
+        as="textarea"
         rows={3}
         defaultValue={assignment.description}
         className="mb-2"
@@ -50,7 +50,7 @@ export default function WorkingWithObjectsAsynchronously() {
           className="form-check-input"
           type="checkbox"
           id="wd-completed"
-          defaultChecked={assignment.completed}
+          checked={assignment.completed || false}
           onChange={(e) =>
             setAssignment({ ...assignment, completed: e.target.checked })
           }
